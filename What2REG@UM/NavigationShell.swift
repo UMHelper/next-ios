@@ -54,9 +54,25 @@ struct SidebarMenu: View {
     @Binding var selection: SidebarDestination
     @Binding var theme: AppTheme
     @Environment(\.colorScheme) private var scheme
+    @Namespace private var themeNamespace
 
     private var panelShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 28)
+    }
+
+    /// 主题选择图标(与搜索栏模式切换同款:玻璃 + 匹配几何形变)
+    private func themeIcon(_ mode: AppTheme, systemName: String, isActive: Bool) -> some View {
+        Image(systemName: systemName)
+            .frame(width: 44.0, height: 44.0)
+            .bold()
+            .foregroundStyle(isActive ? .primary : .secondary)
+            .glassEffect()
+            .glassEffectID(mode.rawValue, in: themeNamespace)
+            .onTapGesture {
+                withAnimation(.spring(duration: 0.45)) {
+                    $theme.wrappedValue = mode
+                }
+            }
     }
 
     var body: some View {
@@ -115,15 +131,18 @@ struct SidebarMenu: View {
 
                     Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 4)
 
-                    // 外观切换
+                    // 外观切换:液态玻璃选择按钮(参考搜索栏)
                     VStack(alignment: .leading, spacing: 8) {
                         SectionHeader(title: "Appearance")
-                        Picker("Appearance", selection: $theme) {
-                            ForEach(AppTheme.allCases) { mode in
-                                Text(mode.title).tag(mode)
+                        GlassEffectContainer {
+                            HStack(spacing: 6) {
+                                themeIcon(.system, systemName: "circle.lefthalf.filled", isActive: theme == .system)
+                                themeIcon(.light, systemName: "sun.max.fill", isActive: theme == .light)
+                                themeIcon(.dark, systemName: "moon.fill", isActive: theme == .dark)
                             }
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 5)
                         }
-                        .pickerStyle(.segmented)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
