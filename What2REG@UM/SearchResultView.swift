@@ -241,13 +241,13 @@ struct SearchResultView: View {
     }
 
     private var resultList: some View {
-        VStack(spacing: 0) {
-            // 筛选栏独立全宽滚动,不被外层 padding 裁剪
-            if currentMode == "course" {
-                filterBar
-            }
+        ScrollView {
+            VStack(spacing: 0) {
+                // 筛选栏与列表同在一个滚动流中,背景连续统一;栏内全宽滚动不受 padding 裁剪
+                if currentMode == "course" {
+                    filterBar
+                }
 
-            ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
                     if currentMode == "course" {
                         ForEach(filteredCourses) { course in
@@ -260,7 +260,7 @@ struct SearchResultView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 8)
+                .padding(.top, 12)
                 .padding(.bottom, 96)
             }
         }
