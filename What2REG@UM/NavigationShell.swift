@@ -157,13 +157,13 @@ struct SidebarMenu: View {
                                 } else if theme == .light {
                                     themeIcon(.light, systemName: "sun.max.fill", isActive: true)
                                     if themeExpanded {
-                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.system, systemName: "circle.lefthalf.filled", isActive: false)
                                         themeIcon(.dark, systemName: "moon", isActive: false)
                                     }
                                 } else {
                                     themeIcon(.dark, systemName: "moon.fill", isActive: true)
                                     if themeExpanded {
-                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.system, systemName: "circle.lefthalf.filled", isActive: false)
                                         themeIcon(.light, systemName: "sun.max", isActive: false)
                                     }
                                 }
@@ -171,6 +171,9 @@ struct SidebarMenu: View {
                             .padding(.horizontal, 5)
                             .padding(.vertical, 5)
                         }
+                        // iOS 26 已知问题:GlassEffectContainer 内动态插入的玻璃视图不渲染;
+                        // 展开状态变化时强制重建容器(id 变化),保证新图标可见
+                        .id(themeExpanded)
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
@@ -291,6 +294,8 @@ struct BottomSearchBar: View {
                             }
                         }
                     }
+                    // 与外观切换同理:展开时强制重建容器,避免新图标不渲染
+                    .id(isExpanded)
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical)
