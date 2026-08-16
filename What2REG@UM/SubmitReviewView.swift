@@ -168,23 +168,20 @@ struct SubmitReviewView: View {
         }
     }
 
-    /// 标签|分段选择 行(10pt 标签,与信息列字号一致)
+    /// 标签在上 + 分段选择在下(与信息列一致的 10pt 标签,完整一行不换行)
     private func pickerRow<Content: View>(
         _ title: String,
         selection: Binding<Double>,
         @ViewBuilder content: () -> Content
     ) -> some View {
-        HStack(spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
-            Spacer()
             Picker(title, selection: selection) {
                 content()
             }
             .pickerStyle(.segmented)
-            .controlSize(.small)
-            .fixedSize()
         }
     }
 
