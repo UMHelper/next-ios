@@ -76,15 +76,11 @@ struct ProfCourseCard: View {
                 HStack(spacing: 8) {
                     Text(prof.course_id)
                         .font(.subheadline.weight(.heavy))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .foregroundStyle(.white)
-                        .background(Color.blue, in: RoundedRectangle(cornerRadius: 9))
                     Spacer()
                     if prof.is_offered == 1 {
                         OfferedComView()
                     } else {
-                        GlassTag(text: "Not Offered", tint: .gray)
+                        NotOfferedComView()
                     }
                 }
 
@@ -98,11 +94,7 @@ struct ProfCourseCard: View {
                             Text(String(format: "%.1f", prof.result))
                                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                             Text(prof.result.gpaLetter)
-                                .font(.subheadline.weight(.heavy))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(prof.result.bgColor, in: Capsule())
-                                .foregroundStyle(.white)
+                                .font(.subheadline.weight(.bold))
                         }
                         .foregroundStyle(prof.result.bgColor)
                     }

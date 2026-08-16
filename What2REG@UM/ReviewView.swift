@@ -377,10 +377,10 @@ struct ReviewView: View {
                     } label: {
                         Label("Submit Review", systemImage: "square.and.pencil")
                             .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.blue)
                             .padding(.horizontal, 14)
                             .padding(.vertical, 8)
-                            .foregroundStyle(.white)
-                            .glassEffect(.regular.tint(.blue).interactive())
+                            .glassEffect(.regular.interactive())
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
@@ -565,11 +565,6 @@ struct TimetableSheet: View {
             VStack(alignment: .leading, spacing: 10) {
                 Text("Section \(timetable.section)")
                     .font(.subheadline.weight(.semibold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 5)
-                    .glassEffect(.regular.tint(.blue.opacity(0.9)))
-                    .clipShape(Capsule())
-                    .foregroundStyle(.white)
 
                 ForEach(timetable.schedules, id: \.self) { schedule in
                     HStack {

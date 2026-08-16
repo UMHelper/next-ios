@@ -89,12 +89,8 @@ struct SidebarMenu: View {
                             HStack(spacing: 12) {
                                 Image(systemName: item.systemImage)
                                     .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(selection == item ? .white : .primary)
+                                    .foregroundStyle(selection == item ? .blue : .primary)
                                     .frame(width: 34, height: 34)
-                                    .background(
-                                        selection == item ? Color.blue : Color.clear,
-                                        in: RoundedRectangle(cornerRadius: 10)
-                                    )
                                     .glassEffect()
                                 Text(item.title)
                                     .font(.body.weight(selection == item ? .semibold : .regular))

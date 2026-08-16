@@ -77,10 +77,9 @@ struct CatalogView: View {
             HStack(spacing: 14) {
                 Image(systemName: unit == "GE Course" ? "globe.asia.australia.fill" : "building.columns.fill")
                     .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.blue)
                     .frame(width: 42, height: 42)
-                    .background(.blue.gradient, in: RoundedRectangle(cornerRadius: 13))
-                    .glassEffect()
+                    .glassEffect(.regular.interactive(), in: .circle)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(unit)

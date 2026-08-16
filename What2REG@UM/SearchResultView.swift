@@ -17,16 +17,12 @@ struct CourseRow: View {
             GlassCard(padding: 16) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        // 课程代码(实色圆角徽章,视觉锚点)
+                        // 课程代码(纯文字,加粗)
                         Text(course.New_code)
                             .font(.subheadline.weight(.heavy))
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .foregroundStyle(.white)
-                            .background(Color.blue, in: RoundedRectangle(cornerRadius: 9))
                         Spacer()
                         if course.Is_Offered == 1 {
-                            GlassTag(text: "Offered", tint: .green)
+                            OfferedComView()
                         }
                     }
 
@@ -59,15 +55,12 @@ struct CourseRow: View {
     private func infoChip(_ icon: String, _ text: String) -> some View {
         HStack(spacing: 4) {
             Image(systemName: icon)
-                .font(.system(size: 9, weight: .semibold))
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.blue)
             Text(text)
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 11, weight: .medium))
                 .lineLimit(1)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 5)
-        .background(.quaternary.opacity(0.6), in: Capsule())
     }
 }
 

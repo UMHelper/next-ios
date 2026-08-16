@@ -228,7 +228,7 @@ struct ProfListItemView: View {
                     }
                 }
 
-                // 总体评分 + 评论数(突出显示)
+                // 总体评分 + 评论数(纯彩色文字,无底色)
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Overall")
@@ -238,11 +238,7 @@ struct ProfListItemView: View {
                             Text(String(format: "%.1f", prof.result))
                                 .font(.system(size: 30, weight: .heavy, design: .rounded))
                             Text(prof.result.gpaLetter)
-                                .font(.subheadline.weight(.heavy))
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(prof.result.bgColor, in: Capsule())
-                                .foregroundStyle(.white)
+                                .font(.subheadline.weight(.bold))
                         }
                         .foregroundStyle(prof.result.bgColor)
                     }

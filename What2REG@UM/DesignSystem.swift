@@ -8,7 +8,7 @@
 
 import SwiftUI
 
-// MARK: - 蓝色背景（浅色=清晰浅蓝渐变 / 深色=深蓝渐变,仅一个柔和光斑轻缓漂移）
+// MARK: - 蓝色搅动背景（小丑牌式旋转交融：光斑沿轨道公转 + 自转 + 旋转光扇）
 
 struct LiquidBackground: View {
     @Environment(\.colorScheme) private var scheme
@@ -18,13 +18,15 @@ struct LiquidBackground: View {
             let t = timeline.date.timeIntervalSinceReferenceDate
             let light = scheme == .light
             GeometryReader { geo in
+                let w = geo.size.width
+                let h = geo.size.height
                 ZStack {
-                    // 清晰可见的蓝色渐变底
+                    // 基底蓝色渐变
                     LinearGradient(
                         colors: light
                             ? [
-                                Color(red: 0.62, green: 0.78, blue: 0.96),
-                                Color(red: 0.80, green: 0.89, blue: 0.99),
+                                Color(red: 0.70, green: 0.83, blue: 0.97),
+                                Color(red: 0.85, green: 0.92, blue: 1.00),
                             ]
                             : [
                                 Color(red: 0.05, green: 0.13, blue: 0.28),
@@ -34,28 +36,82 @@ struct LiquidBackground: View {
                         endPoint: .bottomTrailing
                     )
 
-                    // 仅一个柔和光斑,缓慢漂移增加生气
-                    Ellipse()
+                    // 旋转光扇(自转,营造搅动感)
+                    Circle()
                         .fill(
-                            light
-                                ? Color.blue.opacity(0.22)
-                                : Color.blue.opacity(0.30),
+                            AngularGradient(
+                                colors: [.clear, light ? Color.blue.opacity(0.35) : Color.blue.opacity(0.5), .clear, .clear],
+                                center: .center
+                            )
                         )
-                        .frame(
-                            width: geo.size.width * 1.1,
-                            height: geo.size.width * 0.8
-                        )
-                        .rotationEffect(.degrees(sin(t / 11.0) * 25))
-                        .blur(radius: 95)
-                        .offset(
-                            x: sin(t / 7.0) * geo.size.width * 0.10,
-                            y: -geo.size.height * 0.18 + cos(t / 8.0) * geo.size.height * 0.06
-                        )
+                        .frame(width: w * 1.6, height: w * 1.6)
+                        .rotationEffect(.degrees((t / 22.0).truncatingRemainder(dividingBy: 1) * 360))
+                        .blur(radius: 85)
+                        .position(x: w * 0.5, y: h * 0.32)
+
+                    // 沿轨道公转的光斑(持续可见的搅动)
+                    orbitingBlob(
+                        color: .blue,
+                        period: 26,
+                        radiusX: w * 0.34,
+                        radiusY: h * 0.20,
+                        center: CGPoint(x: w * 0.30, y: h * 0.30),
+                        size: w * 0.85,
+                        blur: 90,
+                        opacity: light ? 0.34 : 0.45
+                    )
+                    orbitingBlob(
+                        color: .cyan,
+                        period: 34,
+                        radiusX: w * 0.28,
+                        radiusY: h * 0.16,
+                        center: CGPoint(x: w * 0.78, y: h * 0.62),
+                        size: w * 0.70,
+                        blur: 85,
+                        opacity: light ? 0.30 : 0.40
+                    )
+                    orbitingBlob(
+                        color: .indigo,
+                        period: 42,
+                        radiusX: w * 0.30,
+                        radiusY: h * 0.18,
+                        center: CGPoint(x: w * 0.55, y: h * 0.85),
+                        size: w * 0.78,
+                        blur: 90,
+                        opacity: light ? 0.26 : 0.36
+                    )
                 }
             }
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
+    }
+
+    /// 公转光斑:绕 center 做椭圆轨道运动并自转(搅动感)
+    private func orbitingBlob(
+        color: Color,
+        period: Double,
+        radiusX: CGFloat,
+        radiusY: CGFloat,
+        center: CGPoint,
+        size: CGFloat,
+        blur: CGFloat,
+        opacity: Double
+    ) -> some View {
+        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
+            let t = timeline.date.timeIntervalSinceReferenceDate
+            let angle = (t / period).truncatingRemainder(dividingBy: 1) * 2 * .pi
+            Ellipse()
+                .fill(color.opacity(opacity))
+                .frame(width: size, height: size * 0.72)
+                .rotationEffect(.degrees((t / (period * 1.6)).truncatingRemainder(dividingBy: 1) * 360))
+                .blur(radius: blur)
+                .blendMode(scheme == .light ? .screen : .plusLighter)
+                .position(
+                    x: center.x + radiusX * CGFloat(cos(angle)),
+                    y: center.y + radiusY * CGFloat(sin(angle))
+                )
+        }
     }
 }
 
@@ -164,31 +220,6 @@ struct GlassIconButton: View {
                 .glassEffect(.regular.interactive(), in: .circle)
         }
         .buttonStyle(.plain)
-    }
-}
-
-// MARK: - 玻璃胶囊标签（如 Offered 徽章）
-
-struct GlassTag: View {
-    let text: String
-    var tint: Color = .green
-    var systemImage: String? = nil
-
-    var body: some View {
-        HStack(spacing: 4) {
-            if let systemImage {
-                Image(systemName: systemImage)
-                    .font(.caption2)
-            }
-            Text(text)
-                .font(.footnote)
-                .bold()
-        }
-        .padding(.horizontal, 10)
-        .padding(.vertical, 5)
-        .foregroundStyle(.white)
-        .glassEffect(.regular.tint(tint).interactive())
-        .clipShape(Capsule())
     }
 }
 
