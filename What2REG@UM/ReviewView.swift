@@ -118,6 +118,7 @@ struct ReviewView: View {
     @State private var showTimetable = false
     @State private var showAdminNotice = false
     @State private var dismissNoticeTask: Task<Void, Never>?
+    @State private var cardsAppeared = false
 
     var body: some View {
         Group {
@@ -134,7 +135,9 @@ struct ReviewView: View {
                 content(data)
             }
         }
-                .task {
+                .navigationTitle("\(code) · \(prof)")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
             guard data == nil else { return }
             await load(page: page)
         }
@@ -165,6 +168,9 @@ struct ReviewView: View {
             totalPage = newData.total_page
             if page == 1 {
                 showAdminNoticeIfNeeded(newData)
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                    cardsAppeared = true
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -338,11 +344,12 @@ struct ReviewView: View {
                         .frame(maxWidth: .infinity)
                 }
             } else {
-                ForEach(topLevel) { comment in
+                ForEach(Array(topLevel.enumerated()), id: \.element.id) { index, comment in
                     CommentView(
                         comment: comment,
                         replies: comments.filter { $0.replyto == comment.id }
                     )
+                    .cardEntrance(appeared: cardsAppeared, delay: 0.08 + Double(min(index, 8)) * 0.05)
                 }
             }
         }

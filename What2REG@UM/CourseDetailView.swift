@@ -14,6 +14,7 @@ struct CourseDetailView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var showCourseDetail = false
+    @State private var cardsAppeared = false
 
     var body: some View {
         Group {
@@ -30,7 +31,9 @@ struct CourseDetailView: View {
                 content(data)
             }
         }
-                .task {
+                .navigationTitle(code)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
             guard data == nil else { return }
             await load()
         }

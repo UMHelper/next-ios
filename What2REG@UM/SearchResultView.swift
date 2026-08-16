@@ -208,7 +208,9 @@ struct SearchResultView: View {
                 resultList
             }
         }
-                .task {
+                .navigationTitle(searchKeyword)
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
             if courses.isEmpty && profs.isEmpty {
                 await performSearch()
             }

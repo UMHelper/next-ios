@@ -175,6 +175,20 @@ struct LoopingTypewriterText: View {
     }
 }
 
+// MARK: - 卡片入场动效（淡入 + 上浮,支持错峰延迟）
+
+extension View {
+    func cardEntrance(appeared: Bool, delay: Double) -> some View {
+        self
+            .opacity(appeared ? 1 : 0)
+            .offset(y: appeared ? 0 : 24)
+            .animation(
+                .spring(response: 0.5, dampingFraction: 0.85).delay(delay),
+                value: appeared
+            )
+    }
+}
+
 // MARK: - 晶边玻璃卡片（统一卡片样式：玻璃 + 单色细描边 + 柔和投影）
 
 struct GlassCard<Content: View>: View {
