@@ -34,35 +34,38 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            NavigationStack(path: $path) {
-                selectedRoot
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(LiquidBackground())
-                    .navigationDestination(for: Route.self) { route in
-                        route.destination
-                    }
-                    .toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            GlassIconButton(systemName: "line.3.horizontal") {
-                                withAnimation(.spring(duration: 0.35)) {
-                                    isSidebarOpen = true
-                                }
-                            }
-                            .scaleEffect(0.92)
+            // 顶部提示与侧边栏仍为覆盖层;搜索栏改为布局底栏,内容不会被遮挡
+            VStack(spacing: 0) {
+                NavigationStack(path: $path) {
+                    selectedRoot
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(LiquidBackground())
+                        .navigationDestination(for: Route.self) { route in
+                            route.destination
                         }
-                    }
-                    .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
-            }
-            .onChange(of: selection) {
-                path = []
-            }
-            .safeAreaInset(edge: .bottom, spacing: 0) {
+                        .toolbar {
+                            ToolbarItem(placement: .topBarLeading) {
+                                GlassIconButton(systemName: "line.3.horizontal") {
+                                    withAnimation(.spring(duration: 0.35)) {
+                                        isSidebarOpen = true
+                                    }
+                                }
+                                .scaleEffect(0.92)
+                            }
+                        }
+                        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+                }
+                .onChange(of: selection) {
+                    path = []
+                }
+
+                // 底部常驻搜索栏(真实布局,占据自己的安全区高度)
                 BottomSearchBar(autoFocus: selection == .home) { mode, keyword in
                     path.append(.search(mode: mode, keyword: keyword))
                 }
             }
 
-            // 侧边栏（最上层）
+            // 侧边栏(最上层)
             SidebarMenu(isOpen: $isSidebarOpen, selection: $selection, theme: theme)
 
             // 全局提示

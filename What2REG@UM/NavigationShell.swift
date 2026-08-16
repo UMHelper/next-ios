@@ -165,11 +165,11 @@ struct BottomSearchBar: View {
         ZStack {
             VStack {
                 Spacer()
-                // 底部渐隐遮罩(与系统背景同色,深色=黑/浅色=白)
+                // 底部渐隐遮罩(与页面蓝色背景一致:浅色=浅蓝/深色=深蓝)
                 LinearGradient(
                     gradient: Gradient(colors: [
-                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }),
-                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }).opacity(0),
+                        scheme == .dark ? Color(red: 0.02, green: 0.06, blue: 0.15) : Color(red: 0.85, green: 0.92, blue: 1.00),
+                        (scheme == .dark ? Color(red: 0.05, green: 0.13, blue: 0.28) : Color(red: 0.70, green: 0.83, blue: 0.97)).opacity(0),
                     ]),
                     startPoint: .bottom,
                     endPoint: .top
