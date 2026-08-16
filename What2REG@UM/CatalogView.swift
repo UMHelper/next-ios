@@ -196,9 +196,11 @@ struct CatalogView: View {
         do {
             // GE 分类走 unit=GECourse&dept=XXX；gecourse 返回全部 GE
             if unit.lowercased() == "gecourse" {
-                courses = try await APIClient.fetchCatalog(unit: "gecourse")
-            } else if let dept = selectedDept, unit == "GECourse" {
-                courses = try await APIClient.fetchCatalog(unit: "GECourse", dept: dept)
+                if let dept = selectedDept {
+                    courses = try await APIClient.fetchCatalog(unit: "GECourse", dept: dept)
+                } else {
+                    courses = try await APIClient.fetchCatalog(unit: "gecourse")
+                }
             } else if let dept = selectedDept {
                 courses = try await APIClient.fetchCatalog(unit: unit, dept: dept)
             } else {
