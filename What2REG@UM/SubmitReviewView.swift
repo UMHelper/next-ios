@@ -22,8 +22,12 @@ struct StarRatingInput: View {
         HStack(spacing: 6) {
             ForEach(1...5, id: \.self) { number in
                 Image(systemName: number <= value ? "star.fill" : "star")
-                    .font(.system(size: size))
+                    .font(.system(size: size * 0.5, weight: .semibold))
                     .foregroundStyle(number <= value ? AnyShapeStyle(Color.yellow) : AnyShapeStyle(.quaternary))
+                    .frame(width: size, height: size)
+                    // 与全局一致的玻璃圆钮语言(GlassIconButton 同款)
+                    .glassEffect(.regular.interactive(), in: .circle)
+                    .contentShape(Circle())
                     .onTapGesture {
                         withAnimation(.spring) {
                             value = number
@@ -74,21 +78,17 @@ struct SubmitReviewView: View {
 
                         Divider().opacity(0.4)
 
-                        // 出席检查(标签|分段选择)
-                        pickerRow("Attendance", selection: $attendance) {
-                            Text("Always").tag(1.0)
-                            Text("Sometimes").tag(3.0)
-                            Text("Never").tag(5.0)
-                        }
+                        // 出席检查(标签|玻璃胶囊分段)
+                        segmentedRow("Attendance", selection: $attendance, options: [
+                            ("Always", 1.0), ("Sometimes", 3.0), ("Never", 5.0),
+                        ])
 
                         Divider().opacity(0.4)
 
-                        // 演示频次(标签|分段选择)
-                        pickerRow("Presentations", selection: $pre) {
-                            Text("Multiple").tag(1.0)
-                            Text("Once").tag(3.0)
-                            Text("Never").tag(5.0)
-                        }
+                        // 演示频次(标签|玻璃胶囊分段)
+                        segmentedRow("Presentations", selection: $pre, options: [
+                            ("Multiple", 1.0), ("Once", 3.0), ("Never", 5.0),
+                        ])
 
                         Divider().opacity(0.4)
 
@@ -107,14 +107,18 @@ struct SubmitReviewView: View {
                         Text("Comment")
                             .font(.system(size: 10))
                             .foregroundStyle(.tertiary)
+                        // 玻璃输入区:与卡片同款玻璃 + 发丝描边(无灰色色块)
                         TextEditor(text: $content)
                             .frame(minHeight: 140)
                             .scrollContentBackground(.hidden)
                             .padding(8)
-                            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+                            .glassEffect(in: .rect(cornerRadius: 14))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 14)
-                                    .strokeBorder(.separator.opacity(0.5), lineWidth: 1)
+                                    .strokeBorder(
+                                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                                        lineWidth: 1
+                                    )
                             )
 
                         HStack {
@@ -166,20 +170,36 @@ struct SubmitReviewView: View {
         }
     }
 
-    /// 标签在上 + 分段选择在下(与信息列一致的 10pt 标签,完整一行不换行)
-    private func pickerRow<Content: View>(
+    /// 玻璃胶囊分段选择(替代系统 segmented:三等宽胶囊,选中 = 蓝色玻璃染)
+    private func segmentedRow(
         _ title: String,
         selection: Binding<Double>,
-        @ViewBuilder content: () -> Content
+        options: [(String, Double)]
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
-            Picker(title, selection: selection) {
-                content()
+            HStack(spacing: 6) {
+                ForEach(options.indices, id: \.self) { i in
+                    let label = options[i].0
+                    let value = options[i].1
+                    let selected = selection.wrappedValue == value
+                    Button {
+                        withAnimation(.spring(duration: 0.35)) {
+                            selection.wrappedValue = value
+                        }
+                    } label: {
+                        Text(label)
+                            .font(.caption.weight(selected ? .semibold : .medium))
+                            .foregroundStyle(selected ? .white : .primary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                            .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
+                    }
+                    .buttonStyle(.plain)
+                }
             }
-            .pickerStyle(.segmented)
         }
     }
 
