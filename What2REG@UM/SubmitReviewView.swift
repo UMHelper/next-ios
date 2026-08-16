@@ -63,7 +63,10 @@ struct SubmitReviewView: View {
     private static let rewardLabels = ["None", "Waste of time", "Not useful", "Not quite", "Useful", "Very useful"]
 
     var body: some View {
-        ScrollView {
+        // 与其他页面统一的动态蓝色背景(本页由裸 NavigationLink 推入,未走 Route 包装,需自行添加)
+        ZStack {
+            LiquidBackground()
+            ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 GlassCard(cornerRadius: 26, padding: 18) {
                     VStack(alignment: .leading, spacing: 10) {
@@ -167,6 +170,7 @@ struct SubmitReviewView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
+            }
         }
     }
 
