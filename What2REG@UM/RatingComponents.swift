@@ -77,6 +77,69 @@ struct ScoreGauge: View {
     }
 }
 
+/// 单项评分条：标签 + 渐变进度条 + 数值与字母徽章(替代密密麻麻的文本)
+struct RatingBar: View {
+    let title: String
+    let value: Double
+
+    var body: some View {
+        VStack(spacing: 5) {
+            HStack(spacing: 6) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(value, format: .number.precision(.fractionLength(1)))
+                    .font(.caption.weight(.semibold))
+                Text(value.gpaLetter)
+                    .font(.system(size: 10, weight: .heavy))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(value.bgGradient, in: Capsule())
+                    .foregroundStyle(.white)
+            }
+            ProgressView(value: min(max(value, 0), 5), total: 5)
+                .tint(AnyShapeStyle(value.bgGradient))
+        }
+    }
+}
+
+/// 教授评分卡：大号 Overall 圆环 + 三条渐变评分条(对应 Web 端 Progress 卡片)
+struct ProfRatingCard: View {
+    let prof: Prof
+
+    var body: some View {
+        HStack(spacing: 22) {
+            // 大圆环 Overall
+            VStack(spacing: 4) {
+                Gauge(value: prof.result, in: 0...5) {
+                    Text("Overall")
+                } currentValueLabel: {
+                    VStack(spacing: 0) {
+                        Text(prof.result, format: .number.precision(.fractionLength(1)))
+                            .font(.title3.weight(.bold))
+                        Text(prof.result.gpaLetter)
+                            .font(.caption2.weight(.heavy))
+                    }
+                }
+                .gaugeStyle(.accessoryCircular)
+                .tint(prof.result.bgGradient)
+                .scaleEffect(1.25)
+                Text("Overall")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            // 三条评分条
+            VStack(spacing: 12) {
+                RatingBar(title: "Grade", value: prof.grade)
+                RatingBar(title: "Difficulty", value: prof.hard)
+                RatingBar(title: "Usefulness", value: prof.reward)
+            }
+        }
+    }
+}
+
 /// "Offered" 玻璃徽章
 struct OfferedComView: View {
     var body: some View {

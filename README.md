@@ -10,8 +10,9 @@
 - 语言：Swift 5 + Swift 6 并发（`SWIFT_APPROACHABLE_CONCURRENCY`、默认 MainActor 隔离）
 - UI：SwiftUI + iOS 26 Liquid Glass（`.glassEffect()` / `GlassEffectContainer` / `.glassEffectID(_:in:)`、
   `TabView(.sidebarAdaptable)` 液态玻璃标签栏、`Gauge` 仪表盘、`ViewThatFits`）
-- 导航：无标签栏设计 —— 左上角菜单按钮打开玻璃侧边栏；底部常驻液态玻璃搜索栏（样式参考 init 提交 01caf8d 的 SearchComView）
-- 首页：极简设计（居中打字机标题 + 底部搜索栏，与 init 提交 01caf8d 一致）
+- 导航：无标签栏设计 —— 左上角菜单按钮打开玻璃侧边栏（Home/Catalog/About）；底部常驻液态玻璃搜索栏（样式参考 init 提交 01caf8d 的 SearchComView），搜索直接通过底栏完成，无独立搜索页
+- 首页：极简设计（居中打字机标题 + 底部搜索栏，与 init 提交 01caf8d 一致）；所有页面均无导航栏标题
+- 背景：动态蓝色「颜料混合」效果 —— 浅色模式为浅蓝、深色模式为深蓝，多层旋转光斑以 screen/plusLighter 混合交融
 - 课程表（Timetable）功能暂缓上架，已从侧边栏移除；评价页时间表弹窗仅展示上课时间地点
 - UI 文案：纯英文（不做国际化；中文仅保留在代码注释与文档中，课程中文名等来自服务端数据）
 - 数据：统一走 next-web 新增的只读 JSON API（详见 [next-web/docs/ios-api-research.md](../next-web/docs/ios-api-research.md)）
@@ -20,9 +21,8 @@
 
 | iOS 视图 | 对应 Web 路由 | 说明 |
 | --- | --- | --- |
-| `HomeView` 首頁 | `/` | 打字机标题、搜索卡片（課程/講師切換）、Comment Bank 学院统计、社区链接 |
-| `SearchTabRootView` 搜索 | `/` 搜索卡片 | 课程/讲师模式搜索入口 |
-| `SearchResultView` 搜索结果 | `/search/course/[code]`、`/search/instructor/[...name]` | 课程卡片 + 9 维过滤（学院/系/语言/时长/学分/类型/等级/年级/开课状态）；讲师分组折叠 |
+| `HomeView` 首頁 | `/` | 极简：居中打字机标题 + 底部常驻搜索栏（课程/讲师模式切换） |
+| `SearchResultView` 搜索结果 | `/search/course/[code]`、`/search/instructor/[...name]` | 课程卡片（代码渐变徽章 + 图标信息胶囊）+ 9 维过滤；讲师分组折叠 |
 | `CourseDetailView` 课程详情 | `/course/[code]` | 课程头部（代码/标题/学分/学院/系/语言/评分制/类型/时长）、课程描述与 ILO 弹窗、教授评分卡片列表 |
 | `ReviewView` 评价页 | `/reviews/[code]/[...prof]` | 教授评分仪表（總體/成績/難度/實用性）、评论分页（20 条/页）、表情投票（👍👎🤣💩❤️️）、回复（5–250 字）、时间表弹窗、管理员通知 |
 | `SubmitReviewView` 提交评价 | `/submit/[code]/[prof]` | 7 项评分（出席/演示 1-3-5 分段，推荐/成绩/工作量/难度/实用性 1–5 星）+ 文字评价（10–2000 字） |
@@ -86,9 +86,8 @@ What2REG@UM/
 ├── DataModel.swift        # Codable 模型 + 评分字母/配色映射
 ├── Toast.swift            # 全局轻量提示(对应 Web 端 sonner)
 ├── RatingComponents.swift # 只读星级/评分胶囊/仪表盘/Offered 徽章/评论图片
-├── HomeView.swift         # 首页 + 搜索卡片 + Comment Bank
-├── SearchView.swift       # 搜索入口 + 打字机标题
-├── SearchComView.swift    # 可复用液态玻璃搜索条
+├── HomeView.swift         # 极简首页(居中打字机标题)
+├── NavigationShell.swift   # 侧边栏 + 底部常驻搜索栏
 ├── SearchResultView.swift # 搜索结果 + 过滤
 ├── CourseDetailView.swift # 课程详情 + 教授列表
 ├── ReviewView.swift       # 评价页(评论/投票/回复/分页/时间表)

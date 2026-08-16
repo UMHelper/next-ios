@@ -77,7 +77,6 @@ struct RootView: View {
     private var selectedRoot: some View {
         switch selection {
         case .home: HomeView()
-        case .search: SearchView()
         case .catalog: CatalogView()
         case .about: AboutView()
         }

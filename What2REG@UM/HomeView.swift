@@ -21,7 +21,5 @@ struct HomeView: View {
                 .foregroundStyle(.primary)
             }
         }
-        .navigationTitle("Home")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+            }
 }

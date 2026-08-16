@@ -168,9 +168,7 @@ struct SubmitReviewView: View {
             .padding(.top, 8)
             .padding(.bottom, 20)
         }
-        .navigationTitle("Submit Review")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+            }
 
     private func sectionCard(_ title: String, @ViewBuilder content: () -> some View) -> some View {
         GlassCard(padding: 16) {

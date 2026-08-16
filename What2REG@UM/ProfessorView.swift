@@ -48,9 +48,7 @@ struct ProfessorView: View {
                 }
             }
         }
-        .navigationTitle(profName)
-        .navigationBarTitleDisplayMode(.large)
-        .task {
+                .task {
             guard courses.isEmpty else { return }
             await load()
         }
@@ -75,9 +73,17 @@ struct ProfCourseCard: View {
     var body: some View {
         GlassCard(padding: 16) {
             VStack(alignment: .leading, spacing: 14) {
-                HStack {
+                HStack(spacing: 8) {
                     Text(prof.course_id)
-                        .font(.headline)
+                        .font(.subheadline.weight(.heavy))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .foregroundStyle(.white)
+                        .background(
+                            LinearGradient(colors: [.blue, .indigo],
+                                           startPoint: .topLeading, endPoint: .bottomTrailing),
+                            in: RoundedRectangle(cornerRadius: 9)
+                        )
                     Spacer()
                     if prof.is_offered == 1 {
                         OfferedComView()
@@ -86,27 +92,62 @@ struct ProfCourseCard: View {
                     }
                 }
 
-                ScoreChip(title: "Overall", value: prof.result)
+                // 总体评分 + 评论数(突出显示)
+                HStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Overall")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack(alignment: .firstTextBaseline, spacing: 6) {
+                            Text(String(format: "%.1f", prof.result))
+                                .font(.system(size: 30, weight: .heavy, design: .rounded))
+                            Text(prof.result.gpaLetter)
+                                .font(.subheadline.weight(.heavy))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 3)
+                                .background(prof.result.bgGradient, in: Capsule())
+                                .foregroundStyle(.white)
+                        }
+                        .foregroundStyle(prof.result.bgGradient)
+                    }
 
-                Divider().opacity(0.4)
+                    Spacer()
 
-                HStack {
-                    ScoreChip(title: "Grade", value: prof.grade)
-                    Spacer()
-                    ScoreChip(title: "Easy", value: prof.hard)
-                    Spacer()
-                    ScoreChip(title: "Outcome", value: prof.reward)
-                    Spacer()
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Comments")
+                    VStack(spacing: 2) {
+                        Image(systemName: "bubble.left.and.bubble.right.fill")
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                         Text(String(prof.comments))
-                            .font(.headline)
-                            .bold()
+                            .font(.subheadline.weight(.bold))
                     }
+                }
+
+                Divider().opacity(0.4)
+
+                // 三项迷你评分条
+                HStack(spacing: 14) {
+                    miniBar("Grade", prof.grade)
+                    miniBar("Easy", prof.hard)
+                    miniBar("Outcome", prof.reward)
                 }
             }
         }
+    }
+
+    private func miniBar(_ title: String, _ value: Double) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(spacing: 4) {
+                Text(title)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                Spacer(minLength: 0)
+                Text(value.gpaLetter)
+                    .font(.system(size: 9, weight: .heavy))
+                    .foregroundStyle(value.bgGradient)
+            }
+            ProgressView(value: min(max(value, 0), 5), total: 5)
+                .tint(AnyShapeStyle(value.bgGradient))
+        }
+        .frame(maxWidth: .infinity)
     }
 }

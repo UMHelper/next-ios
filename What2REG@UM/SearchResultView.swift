@@ -14,53 +14,65 @@ struct CourseRow: View {
 
     var body: some View {
         NavigationLink(value: Route.course(course.New_code)) {
-            GlassCard(padding: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
+            GlassCard(padding: 16) {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 8) {
+                        // 课程代码(圆角渐变徽章,视觉锚点)
                         Text(course.New_code)
-                            .font(.headline)
+                            .font(.subheadline.weight(.heavy))
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .foregroundStyle(.white)
+                            .background(
+                                LinearGradient(colors: [.blue, .indigo],
+                                               startPoint: .topLeading, endPoint: .bottomTrailing),
+                                in: RoundedRectangle(cornerRadius: 9)
+                            )
                         Spacer()
                         if course.Is_Offered == 1 {
                             GlassTag(text: "Offered", tint: .green)
                         }
                     }
+
                     if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
                         Text(titleEng)
-                            .font(.subheadline)
+                            .font(.subheadline.weight(.semibold))
                             .lineLimit(2)
                     }
                     if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
                         Text(titleChi)
-                            .font(.footnote)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
 
-                    HStack {
-                        infoColumn("Credits", course.Credits ?? "N/A")
-                        Spacer()
-                        infoColumn("Dept.", course.Offering_Department ?? "N/A")
-                        Spacer()
-                        infoColumn("Faculty", course.Offering_Unit ?? "N/A")
-                        Spacer()
-                        infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                    // 图标胶囊信息(替代纯文本列,更直观)
+                    HStack(spacing: 8) {
+                        infoChip("graduationcap.fill", (course.Credits ?? "N/A") + " cr")
+                        infoChip("building.2.fill", course.Offering_Department ?? "N/A")
+                        infoChip("building.columns.fill", course.Offering_Unit ?? "N/A")
+                        infoChip("globe", course.Medium_of_Instruction ?? "N/A")
                     }
-                    .font(.footnote)
-                    .padding(.top, 2)
                 }
             }
         }
         .buttonStyle(.plain)
     }
 
-    private func infoColumn(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-            Text(value)
+    private func infoChip(_ icon: String, _ text: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.blue)
+            Text(text)
+                .font(.system(size: 10, weight: .medium))
                 .lineLimit(1)
         }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(.quaternary.opacity(0.6), in: Capsule())
+        .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 0.8))
+        .frame(maxWidth: .infinity)
     }
 }
 
@@ -199,9 +211,7 @@ struct SearchResultView: View {
                 resultList
             }
         }
-        .navigationTitle("Search Results")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
+                .task {
             if courses.isEmpty && profs.isEmpty {
                 await performSearch()
             }

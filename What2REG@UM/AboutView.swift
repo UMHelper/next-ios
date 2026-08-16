@@ -72,9 +72,7 @@ struct AboutView: View {
             .padding(.top, 8)
             .padding(.bottom, 20)
         }
-        .navigationTitle("About")
-        .navigationBarTitleDisplayMode(.inline)
-    }
+            }
 
     private func linkCard(icon: String, title: String, url: String) -> some View {
         Link(destination: URL(string: url)!) {

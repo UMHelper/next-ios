@@ -36,9 +36,7 @@ struct CatalogView: View {
                 courseList
             }
         }
-        .navigationTitle("Catalog")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
+                .task {
             if let initialUnit, selectedUnit == nil {
                 open(unit: initialUnit)
             }

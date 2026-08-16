@@ -12,7 +12,6 @@ import SwiftUI
 
 enum SidebarDestination: String, CaseIterable, Identifiable {
     case home
-    case search
     case catalog
     case about
 
@@ -21,7 +20,6 @@ enum SidebarDestination: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .home: return "Home"
-        case .search: return "Search"
         case .catalog: return "Catalog"
         case .about: return "About"
         }
@@ -30,7 +28,6 @@ enum SidebarDestination: String, CaseIterable, Identifiable {
     var systemImage: String {
         switch self {
         case .home: return "house.fill"
-        case .search: return "magnifyingglass"
         case .catalog: return "books.vertical.fill"
         case .about: return "info.circle.fill"
         }
@@ -195,7 +192,7 @@ struct BottomSearchBar: View {
 
             VStack {
                 Spacer()
-                HStack(spacing: 0) {
+                HStack(spacing: 12) {
 
                     // 搜索输入(玻璃容器 + 内部 glassEffect,与原始设计一致)
                     GlassEffectContainer {

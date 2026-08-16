@@ -2,13 +2,13 @@
 //  DesignSystem.swift
 //  What2REG@UM
 //
-//  统一 Liquid Glass 设计系统：动态蓝色变换背景、晶边玻璃卡片、玻璃按钮与标签。
+//  统一 Liquid Glass 设计系统：动态蓝色颜料混合背景、晶边玻璃卡片、玻璃按钮与标签。
 //  所有页面共用本文件组件，保证特效与画面一致。
 //
 
 import SwiftUI
 
-// MARK: - 动态蓝色变换背景（浅色/深色自适应，光斑随时间流动）
+// MARK: - 动态蓝色颜料混合背景（浅色=浅蓝 / 深色=深蓝，光斑如颜料般交融流动）
 
 struct LiquidBackground: View {
     @Environment(\.colorScheme) private var scheme
@@ -19,57 +19,55 @@ struct LiquidBackground: View {
             let light = scheme == .light
             GeometryReader { geo in
                 ZStack {
-                    // 基底：浅色柔和蓝白 / 深色深邃藏青
+                    // 基底颜料色：浅色=浅蓝 / 深色=深蓝
                     (light
-                        ? Color(red: 0.90, green: 0.94, blue: 1.0)
-                        : Color(red: 0.03, green: 0.06, blue: 0.14))
+                        ? Color(red: 0.84, green: 0.90, blue: 0.98)
+                        : Color(red: 0.03, green: 0.07, blue: 0.18))
 
-                    // 光斑 1：主蓝（缓慢漂移 + 色相微变）
-                    blob(
-                        hue: 0.585 + 0.035 * sin(t / 9),
-                        size: geo.size.width * 1.25,
-                        blur: 130,
-                        opacity: light ? 0.42 : 0.34,
-                        offset: CGSize(
-                            width: sin(t / 6.3) * geo.size.width * 0.16,
-                            height: -geo.size.height * 0.22 + cos(t / 7.1) * geo.size.height * 0.10
-                        )
-                    )
-
-                    // 光斑 2：靛蓝
-                    blob(
-                        hue: 0.62 + 0.03 * sin(t / 8 + 2),
-                        size: geo.size.width * 0.95,
-                        blur: 120,
-                        opacity: light ? 0.34 : 0.28,
-                        offset: CGSize(
-                            width: cos(t / 7.7) * geo.size.width * 0.18,
-                            height: geo.size.height * 0.18 + sin(t / 6.9) * geo.size.height * 0.12
-                        )
-                    )
-
-                    // 光斑 3：青色点缀
-                    blob(
-                        hue: 0.52 + 0.03 * sin(t / 10 + 4),
-                        size: geo.size.width * 0.7,
+                    // 多层颜料团：旋转 + 模糊 + 增亮混合,模拟颜料被搅动交融
+                    paintBlob(
+                        color: .blue,
+                        size: geo.size.width * 1.35,
                         blur: 110,
-                        opacity: light ? 0.30 : 0.22,
-                        offset: CGSize(
-                            width: -geo.size.width * 0.22 + sin(t / 8.4) * geo.size.width * 0.12,
-                            height: geo.size.height * 0.34 + cos(t / 7.6) * geo.size.height * 0.10
-                        )
+                        opacity: light ? 0.30 : 0.42,
+                        rotation: sin(t / 9.0) * 40,
+                        offset: CGSize(width: sin(t / 6.5) * geo.size.width * 0.14, height: -geo.size.height * 0.20 + cos(t / 7.3) * geo.size.height * 0.08)
+                    )
+                    paintBlob(
+                        color: .indigo,
+                        size: geo.size.width * 1.05,
+                        blur: 105,
+                        opacity: light ? 0.26 : 0.36,
+                        rotation: cos(t / 8.2) * 55,
+                        offset: CGSize(width: cos(t / 7.1) * geo.size.width * 0.17, height: geo.size.height * 0.16 + sin(t / 6.7) * geo.size.height * 0.10)
+                    )
+                    paintBlob(
+                        color: .cyan,
+                        size: geo.size.width * 0.82,
+                        blur: 95,
+                        opacity: light ? 0.24 : 0.30,
+                        rotation: sin(t / 7.6) * 70,
+                        offset: CGSize(width: -geo.size.width * 0.20 + sin(t / 8.0) * geo.size.width * 0.10, height: geo.size.height * 0.30 + cos(t / 7.9) * geo.size.height * 0.09)
+                    )
+                    paintBlob(
+                        color: .teal,
+                        size: geo.size.width * 0.60,
+                        blur: 85,
+                        opacity: light ? 0.20 : 0.26,
+                        rotation: cos(t / 10.3) * 60,
+                        offset: CGSize(width: geo.size.width * 0.22 + cos(t / 9.4) * geo.size.width * 0.09, height: -geo.size.height * 0.30 + sin(t / 8.6) * geo.size.height * 0.10)
                     )
 
-                    // 顶部提亮（深色模式下模拟环境光）
+                    // 顶部环境光
                     LinearGradient(
                         colors: [
-                            (light ? Color.white.opacity(0.35) : Color.blue.opacity(0.10)),
+                            (light ? Color.white.opacity(0.30) : Color.blue.opacity(0.10)),
                             .clear,
                         ],
                         startPoint: .top,
                         endPoint: .bottom
                     )
-                    .frame(height: geo.size.height * 0.4)
+                    .frame(height: geo.size.height * 0.35)
                     .frame(maxHeight: .infinity, alignment: .top)
                 }
             }
@@ -78,13 +76,83 @@ struct LiquidBackground: View {
         .allowsHitTesting(false)
     }
 
-    private func blob(hue: Double, size: CGFloat, blur: CGFloat, opacity: Double, offset: CGSize) -> some View {
-        Circle()
-            .fill(Color(hue: hue, saturation: 0.75, brightness: 0.95).opacity(opacity))
-            .frame(width: size, height: size)
+    /// 颜料团：椭圆旋转 + 强模糊 + 增亮混合(浅色用 screen,深色用 plusLighter)
+    private func paintBlob(
+        color: Color,
+        size: CGFloat,
+        blur: CGFloat,
+        opacity: Double,
+        rotation: Double,
+        offset: CGSize
+    ) -> some View {
+        Ellipse()
+            .fill(color.opacity(opacity))
+            .frame(width: size, height: size * 0.78)
+            .rotationEffect(.degrees(rotation))
             .blur(radius: blur)
+            .blendMode(scheme == .light ? .screen : .plusLighter)
             .offset(offset)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    }
+}
+
+// MARK: - 循环打字机文字（多段轮播）
+
+struct LoopingTypewriterText: View {
+    let fullTexts: [String]   // 多段文字
+    var typingSpeed: Double = 0.1  // 每个字母的间隔
+    var pauseTime: Double = 1.5    // 每段文字打完后的停顿时间
+
+    @State private var displayedText: String = ""
+    @State private var textIndex = 0   // 当前是哪一段文字
+    @State private var charIndex = 0   // 当前文字的第几个字符
+    @State private var typingTimer: Timer? = nil
+
+    var body: some View {
+        Text(displayedText)
+            .onAppear { startTyping() }
+            .onDisappear {
+                stopTyping()
+                displayedText = ""
+            }
+    }
+
+    private func startTyping() {
+        // 防止重复创建多个 timer
+        typingTimer?.invalidate()
+        typingTimer = nil
+
+        displayedText = ""
+        charIndex = 0
+
+        guard !fullTexts.isEmpty else { return }
+        let currentText = fullTexts[textIndex % fullTexts.count]
+
+        // 使用 Timer + RunLoop.common 来确保在各种 UI 模式下都能正常工作
+        let timer = Timer(timeInterval: typingSpeed, repeats: true) { timer in
+            DispatchQueue.main.async {
+                if charIndex < currentText.count {
+                    let idx = currentText.index(currentText.startIndex, offsetBy: charIndex)
+                    displayedText.append(currentText[idx])
+                    charIndex += 1
+                } else {
+                    timer.invalidate()
+
+                    // 等待 pauseTime 再切换到下一句
+                    DispatchQueue.main.asyncAfter(deadline: .now() + pauseTime) {
+                        textIndex = (textIndex + 1) % fullTexts.count
+                        startTyping()
+                    }
+                }
+            }
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        typingTimer = timer
+    }
+
+    private func stopTyping() {
+        typingTimer?.invalidate()
+        typingTimer = nil
     }
 }
 

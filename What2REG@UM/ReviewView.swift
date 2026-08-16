@@ -278,9 +278,7 @@ struct ReviewView: View {
                 content(data)
             }
         }
-        .navigationTitle("\(code) · \(prof)")
-        .navigationBarTitleDisplayMode(.inline)
-        .task {
+                .task {
             guard data == nil else { return }
             await load(page: page)
         }
@@ -405,18 +403,10 @@ struct ReviewView: View {
         }
     }
 
-    // MARK: 评分仪表
+    // MARK: 评分卡(大圆环 + 评分条)
     private func gaugeCard(_ data: ReviewPageData) -> some View {
         GlassCard(padding: 18) {
-            HStack {
-                ScoreGauge(title: "Overall", value: data.prof.result)
-                Spacer()
-                ScoreGauge(title: "Grade", value: data.prof.grade)
-                Spacer()
-                ScoreGauge(title: "Difficulty", value: data.prof.hard)
-                Spacer()
-                ScoreGauge(title: "Usefulness", value: data.prof.reward)
-            }
+            ProfRatingCard(prof: data.prof)
         }
     }
 
@@ -559,8 +549,6 @@ struct TimetableSheet: View {
                     .padding(20)
                 }
             }
-            .navigationTitle("Timetable")
-            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Done") { dismiss() }
