@@ -161,7 +161,7 @@ struct CourseDetailView: View {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.caption)
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.secondary)
                 Text(title)
                     .font(.footnote)
                     .foregroundStyle(.primary)
@@ -242,7 +242,7 @@ struct CourseDetailView: View {
             HStack(spacing: 7) {
                 Image(systemName: icon)
                     .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(.secondary)
                 Text(title)
                     .font(.subheadline.weight(.semibold))
             }
