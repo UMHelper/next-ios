@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct HomeView: View {
+    @Environment(\.openSidebar) private var openSidebar
+
     var body: some View {
         ZStack {
             VStack(alignment: .leading) {
@@ -22,5 +24,14 @@ struct HomeView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    openSidebar()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                }
             }
+        }
+    }
 }

@@ -8,6 +8,19 @@
 
 import SwiftUI
 
+// MARK: - 打开侧边栏环境动作(各页面工具栏使用)
+
+private struct OpenSidebarKey: EnvironmentKey {
+    static let defaultValue: () -> Void = {}
+}
+
+extension EnvironmentValues {
+    var openSidebar: () -> Void {
+        get { self[OpenSidebarKey.self] }
+        set { self[OpenSidebarKey.self] = newValue }
+    }
+}
+
 // MARK: - 侧边栏目的地
 
 enum SidebarDestination: String, CaseIterable, Identifiable {

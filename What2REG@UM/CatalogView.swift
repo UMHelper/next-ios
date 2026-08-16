@@ -16,6 +16,8 @@ enum CatalogLayout: String {
 struct CatalogView: View {
     var initialUnit: String? = nil
 
+    @Environment(\.openSidebar) private var openSidebar
+
     /// 学院列表与系别（与 Web 端 lib/consant.ts faculty / faculty_dept 一致）
     static let faculties = ["FBA", "FAH", "ICI", "FST", "IAPME", "ICMS", "FSS", "FED", "FLL", "FHS", "IME", "HC", "RC"]
     static let facultyDept: [String: [String]] = [
@@ -34,6 +36,7 @@ struct CatalogView: View {
     @State private var selectedDept: String? = nil
     @State private var errorMessage: String?
     @State private var layout: CatalogLayout = .grid
+    @State private var layoutExpanded = false
     @Namespace private var layoutNamespace
 
     var body: some View {
@@ -47,6 +50,33 @@ struct CatalogView: View {
                 .task {
             if let initialUnit, selectedUnit == nil {
                 open(unit: initialUnit)
+            }
+        }
+        .toolbar {
+            // 学院列表:菜单按钮;课程列表:返回按钮
+            ToolbarItem(placement: .topBarLeading) {
+                if selectedUnit == nil {
+                    Button {
+                        openSidebar()
+                    } label: {
+                        Image(systemName: "line.3.horizontal")
+                    }
+                } else {
+                    Button {
+                        selectedUnit = nil
+                        selectedDept = nil
+                        courses = []
+                    } label: {
+                        Image(systemName: "chevron.left")
+                    }
+                }
+            }
+            // 课程列表:标题居中显示在顶部
+            if selectedUnit != nil {
+                ToolbarItem(placement: .principal) {
+                    Text(selectedUnit?.uppercased() ?? "")
+                        .font(.headline)
+                }
             }
         }
     }
@@ -110,52 +140,35 @@ struct CatalogView: View {
         }
     }
 
-    // MARK: 课程列表(卡片/列表两种布局,标题行右侧为液态玻璃切换按钮)
+    // MARK: 课程列表(卡片/列表两种布局,切换按钮与系别筛选同行,参照搜索栏)
     private var courseList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 返回 + 标题 + 布局切换(与搜索栏同款玻璃形变切换)
+            // 系别筛选胶囊 + 布局切换(同行,切换按钮右侧固定)
             HStack(spacing: 10) {
-                GlassIconButton(systemName: "chevron.left", size: 36) {
-                    selectedUnit = nil
-                    selectedDept = nil
-                    courses = []
-                }
-                Text(selectedUnit?.uppercased() ?? "")
-                    .font(.headline)
-                Spacer()
-
-                GlassEffectContainer {
-                    HStack(spacing: 6) {
-                        layoutIcon(.grid, systemName: "square.grid.2x2.fill", isActive: layout == .grid)
-                        layoutIcon(.list, systemName: "list.bullet", isActive: layout == .list)
-                    }
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 5)
-                }
-                .clipShape(Capsule())
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 4)
-
-            // 系别筛选胶囊
-            let options = deptOptions
-            if !options.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        chip("All", selected: selectedDept == nil) {
-                            selectedDept = nil
-                            Task { await load() }
-                        }
-                        ForEach(options, id: \.self) { dept in
-                            chip(dept, selected: selectedDept == dept) {
-                                selectedDept = dept
+                let options = deptOptions
+                if !options.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            chip("All", selected: selectedDept == nil) {
+                                selectedDept = nil
                                 Task { await load() }
+                            }
+                            ForEach(options, id: \.self) { dept in
+                                chip(dept, selected: selectedDept == dept) {
+                                    selectedDept = dept
+                                    Task { await load() }
+                                }
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
+                } else {
+                    Spacer(minLength: 0)
                 }
+
+                layoutToggle
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 4)
 
             if isLoading {
                 ProgressView("Loading...")
@@ -184,7 +197,7 @@ struct CatalogView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 4)
-                        .padding(.bottom, 96)
+                        .padding(.bottom, 20)
                     } else {
                         // 列表布局:整行课程卡
                         LazyVStack(alignment: .leading, spacing: 14) {
@@ -194,24 +207,50 @@ struct CatalogView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 4)
-                        .padding(.bottom, 96)
+                        .padding(.bottom, 20)
                     }
                 }
             }
         }
     }
 
+    /// 布局切换按钮:与搜索栏同款(玻璃容器 + 52×52 玻璃图标 + 匹配几何形变,点按展开/切换)
+    private var layoutToggle: some View {
+        GlassEffectContainer {
+            HStack(spacing: 6) {
+                if layout == .grid {
+                    layoutIcon(.grid, systemName: "square.grid.2x2.fill", isActive: true)
+                    if layoutExpanded {
+                        layoutIcon(.list, systemName: "list.bullet", isActive: false)
+                    }
+                } else {
+                    layoutIcon(.list, systemName: "list.bullet", isActive: true)
+                    if layoutExpanded {
+                        layoutIcon(.grid, systemName: "square.grid.2x2", isActive: false)
+                    }
+                }
+            }
+            .padding(.horizontal, 5)
+            .padding(.vertical, 5)
+        }
+    }
+
     /// 布局切换图标(与搜索栏模式切换同款:玻璃 + 匹配几何形变)
     private func layoutIcon(_ mode: CatalogLayout, systemName: String, isActive: Bool) -> some View {
         Image(systemName: systemName)
-            .font(.system(size: 15, weight: .semibold))
+            .frame(width: 52.0, height: 52.0)
+            .bold()
             .foregroundStyle(isActive ? .primary : .secondary)
-            .frame(width: 38, height: 38)
             .glassEffect()
             .glassEffectID(mode.rawValue, in: layoutNamespace)
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {
-                    layout = mode
+                    if mode == layout {
+                        layoutExpanded.toggle()
+                    } else {
+                        layout = mode
+                        layoutExpanded = false
+                    }
                 }
             }
     }

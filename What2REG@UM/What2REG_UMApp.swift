@@ -41,16 +41,9 @@ struct RootView: View {
                     .navigationDestination(for: Route.self) { route in
                         route.destination
                     }
-                    .toolbar {
-                        // 系统标准工具栏按钮:iOS 26 自动渲染玻璃圆形外壳与按压动画,避免双层外壳
-                        ToolbarItem(placement: .topBarLeading) {
-                            Button {
-                                withAnimation(.spring(duration: 0.35)) {
-                                    isSidebarOpen = true
-                                }
-                            } label: {
-                                Image(systemName: "line.3.horizontal")
-                            }
+                    .environment(\.openSidebar) {
+                        withAnimation(.spring(duration: 0.35)) {
+                            isSidebarOpen = true
                         }
                     }
                     .toolbarBackgroundVisibility(.hidden, for: .navigationBar)

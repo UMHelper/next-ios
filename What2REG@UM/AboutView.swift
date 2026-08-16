@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct AboutView: View {
+    @Environment(\.openSidebar) private var openSidebar
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
@@ -63,6 +65,15 @@ struct AboutView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    openSidebar()
+                } label: {
+                    Image(systemName: "line.3.horizontal")
+                }
+            }
         }
     }
 
