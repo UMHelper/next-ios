@@ -37,7 +37,6 @@ struct CatalogView: View {
     @State private var selectedDept: String? = nil
     @State private var errorMessage: String?
     @State private var layout: CatalogLayout = .grid
-    @Namespace private var layoutNamespace
 
     var body: some View {
         Group {
@@ -78,9 +77,24 @@ struct CatalogView: View {
                         .font(.headline)
                 }
             }
-            // 列表/卡片切换按钮:与菜单按钮齐平(学院页与课程页均显示)
-            ToolbarItem(placement: .topBarTrailing) {
-                layoutToggle
+            // 列表/卡片切换:系统工具栏按钮组(自动圆形玻璃,与菜单按钮同尺寸)
+            ToolbarItemGroup(placement: .topBarTrailing) {
+                Button {
+                    withAnimation(.spring(duration: 0.45)) {
+                        layout = .grid
+                    }
+                } label: {
+                    Image(systemName: layout == .grid ? "square.grid.2x2.fill" : "square.grid.2x2")
+                        .foregroundStyle(layout == .grid ? Color.blue : Color.secondary)
+                }
+                Button {
+                    withAnimation(.spring(duration: 0.45)) {
+                        layout = .list
+                    }
+                } label: {
+                    Image(systemName: "list.bullet")
+                        .foregroundStyle(layout == .list ? Color.blue : Color.secondary)
+                }
             }
         }
     }
@@ -271,44 +285,6 @@ struct CatalogView: View {
                 }
             }
         }
-    }
-
-    /// 布局切换按钮:两个圆形玻璃图标(与菜单按钮同尺寸),激活实心/未激活空心,单次点按切换
-    private var layoutToggle: some View {
-        HStack(spacing: 6) {
-            layoutIcon(
-                .grid,
-                activeIcon: "square.grid.2x2.fill",
-                inactiveIcon: "square.grid.2x2",
-                isActive: layout == .grid
-            )
-            layoutIcon(
-                .list,
-                activeIcon: "list.bullet",
-                inactiveIcon: "list.bullet",
-                isActive: layout == .list
-            )
-        }
-    }
-
-    /// 布局切换图标:圆形玻璃(36×36,与菜单按钮同尺寸),稳定身份形变
-    private func layoutIcon(
-        _ mode: CatalogLayout,
-        activeIcon: String,
-        inactiveIcon: String,
-        isActive: Bool
-    ) -> some View {
-        Image(systemName: isActive ? activeIcon : inactiveIcon)
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(isActive ? .primary : .secondary)
-            .frame(width: 36.0, height: 36.0)
-            .glassEffect(.regular.interactive(), in: .circle)
-            .glassEffectID(mode.rawValue, in: layoutNamespace)
-            .onTapGesture {
-                withAnimation(.spring(duration: 0.45)) {
-                    layout = mode
-                }
-            }
     }
 
     private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {

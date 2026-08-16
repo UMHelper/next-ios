@@ -55,19 +55,15 @@ struct SidebarMenu: View {
     @Binding var theme: AppTheme
     @Environment(\.colorScheme) private var scheme
     @Namespace private var themeNamespace
+    @State private var themeExpanded = false
 
     private var panelShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 28)
     }
 
-    /// 主题选择图标(最佳实践:视图身份稳定,激活态实心/未激活空心,单次点按切换)
-    private func themeIcon(
-        _ mode: AppTheme,
-        activeIcon: String,
-        inactiveIcon: String,
-        isActive: Bool
-    ) -> some View {
-        Image(systemName: isActive ? activeIcon : inactiveIcon)
+    /// 主题选择图标(与搜索栏模式切换完全同款:52×52 玻璃 + 匹配几何形变,点按展开/切换)
+    private func themeIcon(_ mode: AppTheme, systemName: String, isActive: Bool) -> some View {
+        Image(systemName: systemName)
             .frame(width: 52.0, height: 52.0)
             .bold()
             .foregroundStyle(isActive ? .primary : .secondary)
@@ -75,7 +71,12 @@ struct SidebarMenu: View {
             .glassEffectID(mode.rawValue, in: themeNamespace)
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {
-                    $theme.wrappedValue = mode
+                    if mode == theme {
+                        themeExpanded.toggle()
+                    } else {
+                        $theme.wrappedValue = mode
+                        themeExpanded = false
+                    }
                 }
             }
     }
@@ -147,24 +148,25 @@ struct SidebarMenu: View {
                         SectionHeader(title: "Appearance")
                         GlassEffectContainer {
                             HStack(spacing: 6) {
-                                themeIcon(
-                                    .system,
-                                    activeIcon: "circle.lefthalf.filled",
-                                    inactiveIcon: "circle.lefthalf",
-                                    isActive: theme == .system
-                                )
-                                themeIcon(
-                                    .light,
-                                    activeIcon: "sun.max.fill",
-                                    inactiveIcon: "sun.max",
-                                    isActive: theme == .light
-                                )
-                                themeIcon(
-                                    .dark,
-                                    activeIcon: "moon.fill",
-                                    inactiveIcon: "moon",
-                                    isActive: theme == .dark
-                                )
+                                if theme == .system {
+                                    themeIcon(.system, systemName: "circle.lefthalf.fill", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.light, systemName: "sun.max", isActive: false)
+                                        themeIcon(.dark, systemName: "moon", isActive: false)
+                                    }
+                                } else if theme == .light {
+                                    themeIcon(.light, systemName: "sun.max.fill", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.dark, systemName: "moon", isActive: false)
+                                    }
+                                } else {
+                                    themeIcon(.dark, systemName: "moon.fill", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.light, systemName: "sun.max", isActive: false)
+                                    }
+                                }
                             }
                             .padding(.horizontal, 5)
                             .padding(.vertical, 5)
