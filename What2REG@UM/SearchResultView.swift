@@ -339,7 +339,8 @@ struct SearchResultView: View {
                 }
                 // 左右各 20pt padding:初始左对齐卡片文字,滚动到最右时末芯片右对齐卡片
                 .padding(.horizontal, 20)
-                .padding(.vertical, 4)
+                .padding(.top, 2)
+                .padding(.bottom, 4)
             }
         }
     }
