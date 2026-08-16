@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+/// 目录布局模式(卡片 / 列表)
+enum CatalogLayout: String {
+    case grid
+    case list
+}
+
 struct CatalogView: View {
     var initialUnit: String? = nil
 
@@ -27,6 +33,8 @@ struct CatalogView: View {
     @State private var selectedUnit: String? = nil
     @State private var selectedDept: String? = nil
     @State private var errorMessage: String?
+    @State private var layout: CatalogLayout = .grid
+    @Namespace private var layoutNamespace
 
     var body: some View {
         Group {
@@ -102,11 +110,11 @@ struct CatalogView: View {
         }
     }
 
-    // MARK: 课程列表
+    // MARK: 课程列表(卡片/列表两种布局,标题行右侧为液态玻璃切换按钮)
     private var courseList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 返回 + 标题
-            HStack {
+            // 返回 + 标题 + 布局切换(与搜索栏同款玻璃形变切换)
+            HStack(spacing: 10) {
                 GlassIconButton(systemName: "chevron.left", size: 36) {
                     selectedUnit = nil
                     selectedDept = nil
@@ -115,6 +123,16 @@ struct CatalogView: View {
                 Text(selectedUnit?.uppercased() ?? "")
                     .font(.headline)
                 Spacer()
+
+                GlassEffectContainer {
+                    HStack(spacing: 6) {
+                        layoutIcon(.grid, systemName: "square.grid.2x2.fill", isActive: layout == .grid)
+                        layoutIcon(.list, systemName: "list.bullet", isActive: layout == .list)
+                    }
+                    .padding(.horizontal, 5)
+                    .padding(.vertical, 5)
+                }
+                .clipShape(Capsule())
             }
             .padding(.horizontal, 20)
             .padding(.top, 4)
@@ -151,17 +169,51 @@ struct CatalogView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 14) {
-                        ForEach(courses) { course in
-                            CourseRow(course: course)
+                    if layout == .grid {
+                        // 卡片布局:两列紧凑课程卡
+                        LazyVGrid(
+                            columns: [
+                                GridItem(.flexible(), spacing: 14),
+                                GridItem(.flexible(), spacing: 14),
+                            ],
+                            spacing: 14
+                        ) {
+                            ForEach(courses) { course in
+                                CatalogCourseCard(course: course)
+                            }
                         }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 4)
+                        .padding(.bottom, 20)
+                    } else {
+                        // 列表布局:整行课程卡
+                        LazyVStack(alignment: .leading, spacing: 14) {
+                            ForEach(courses) { course in
+                                CourseRow(course: course)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, 4)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 4)
-                    .padding(.bottom, 20)
                 }
             }
         }
+    }
+
+    /// 布局切换图标(与搜索栏模式切换同款:玻璃 + 匹配几何形变)
+    private func layoutIcon(_ mode: CatalogLayout, systemName: String, isActive: Bool) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 15, weight: .semibold))
+            .foregroundStyle(isActive ? .primary : .secondary)
+            .frame(width: 38, height: 38)
+            .glassEffect()
+            .glassEffectID(mode.rawValue, in: layoutNamespace)
+            .onTapGesture {
+                withAnimation(.spring(duration: 0.45)) {
+                    layout = mode
+                }
+            }
     }
 
     private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
@@ -216,5 +268,57 @@ struct CatalogView: View {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+}
+// MARK: - 紧凑课程卡(卡片布局)
+
+struct CatalogCourseCard: View {
+    let course: FuzzyCourse
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        NavigationLink(value: Route.course(course.New_code)) {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack {
+                    Text(course.New_code)
+                        .font(.subheadline.weight(.heavy))
+                        .lineLimit(1)
+                    Spacer()
+                    if course.Is_Offered == 1 {
+                        OfferedComView()
+                    }
+                }
+
+                if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
+                    Text(titleEng)
+                        .font(.caption)
+                        .lineLimit(2)
+                }
+                if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
+                    Text(titleChi)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                Spacer(minLength: 0)
+
+                Text((course.Credits ?? "N/A") + " cr · " + (course.Offering_Department ?? "N/A"))
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, minHeight: 118, alignment: .leading)
+            .glassEffect(in: .rect(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(
+                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 }
