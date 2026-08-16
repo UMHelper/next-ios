@@ -72,11 +72,11 @@ struct ProfCourseCard: View {
     let prof: Prof
 
     var body: some View {
-        GlassCard(padding: 16) {
-            VStack(alignment: .leading, spacing: 14) {
+        GlassCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 8) {
                     Text(prof.course_id)
-                        .font(.subheadline.weight(.heavy))
+                        .font(.headline)
                     Spacer()
                     if prof.is_offered == 1 {
                         OfferedComView()
@@ -85,42 +85,24 @@ struct ProfCourseCard: View {
                     }
                 }
 
-                // 总体评分 + 评论数(突出显示)
-                HStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Overall")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                        HStack(alignment: .firstTextBaseline, spacing: 6) {
-                            Text(String(format: "%.1f", prof.result))
-                                .font(.system(size: 30, weight: .heavy, design: .rounded))
-                            Text(prof.result.gpaLetter)
+                // 五行评分:标签在上,彩色分数在下(无进度条,与其他信息列统一)
+                Grid(horizontalSpacing: 8) {
+                    GridRow {
+                        ScoreColumn(title: "Overall", value: prof.result)
+                        ScoreColumn(title: "Grade", value: prof.grade)
+                        ScoreColumn(title: "Easy", value: prof.hard)
+                        ScoreColumn(title: "Outcome", value: prof.reward)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Comments")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                            Text(String(prof.comments))
                                 .font(.subheadline.weight(.bold))
                         }
-                        .foregroundStyle(prof.result.bgColor)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-
-                    Spacer()
-
-                    VStack(spacing: 2) {
-                        Image(systemName: "bubble.left.and.bubble.right.fill")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                        Text(String(prof.comments))
-                            .font(.subheadline.weight(.bold))
-                    }
-                }
-
-                Divider().opacity(0.4)
-
-                // 三项评分条(整宽,宽松排列)
-                VStack(spacing: 12) {
-                    RatingBar(title: "Grade", value: prof.grade)
-                    RatingBar(title: "Easy", value: prof.hard)
-                    RatingBar(title: "Outcome", value: prof.reward)
                 }
             }
         }
     }
-
 }

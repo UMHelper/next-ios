@@ -34,6 +34,28 @@ struct NonInteractiveStarView: View {
     }
 }
 
+/// 评分列:标签在上 + 彩色分数(数值+字母)在下,与课程信息列样式统一
+struct ScoreColumn: View {
+    let title: String
+    let value: Double
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            HStack(alignment: .firstTextBaseline, spacing: 3) {
+                Text(String(format: "%.1f", value))
+                    .font(.subheadline.weight(.bold))
+                Text(value.gpaLetter)
+                    .font(.caption2.weight(.bold))
+            }
+            .foregroundStyle(value.bgColor)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 /// 单项评分条：标签 + 细进度条 + 彩色文字数值(无任何色块)
 struct RatingBar: View {
     let title: String
