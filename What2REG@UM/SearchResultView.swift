@@ -295,8 +295,8 @@ struct SearchResultView: View {
                         }
                     }
                 }
-                // 首芯片与卡片文字左对齐(20pt 限位),右侧无 padding 可滚到屏幕边缘
-                .padding(.leading, 20)
+                // 左右各 20pt padding:初始左对齐卡片文字,滚动到最右时末芯片右对齐卡片
+                .padding(.horizontal, 20)
                 .padding(.vertical, 4)
             }
         }
