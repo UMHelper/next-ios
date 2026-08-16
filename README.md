@@ -48,6 +48,9 @@ API 基址：`APIConfig.baseURL`（DEBUG 为 `http://localhost:3000/api`，Relea
 
 教授名编码规则与 Web 一致：空格 `%20`、`/` 转义为 `$`（`String.profPathEncoded`）。
 
+六个只读 GET 接口（`/course`、`/fuzzy_search`、`/catalog`、`/statistics`、`/professor`、`GET /comment/[code]/[prof]`）
+需要 iOS 认证头（见第 6 节）；三个 POST 接口与 Web 共用，无需认证。
+
 ## 4. 身份体系（当前设计与升级路线）
 
 - Web 端投票/回复/图片上传要求 Clerk 登录；服务端 API 本身信任客户端上报的 `created_by` / `verify_account`。
@@ -63,20 +66,47 @@ API 基址：`APIConfig.baseURL`（DEBUG 为 `http://localhost:3000/api`，Relea
    cd ../next-web && npm install && npm run dev
    ```
    `.env.local` 默认指向生产 Supabase，因此本地服务返回真实数据。
-2. 打开 `What2REG@UM.xcodeproj`（Xcode 26.5+），选择 iPhone 17 模拟器运行。
-3. 命令行构建：
+2. 准备 iOS 专用 API 共享密钥（首次构建必须，见第 6 节）：
+   ```bash
+   cp Secrets/UMSecrets.example Secrets/UMSecrets.local
+   # 编辑 UMSecrets.local，填入与 next-web 服务端环境变量 UM_IOS_API_SECRET 一致的密钥
+   ```
+   Xcode 构建时由 `scripts/inject-secret.sh` 自动生成 `What2REG@UM/GeneratedSecrets.swift`（两者均已 gitignore）。
+3. 打开 `What2REG@UM.xcodeproj`（Xcode 26.5+），选择 iPhone 17 模拟器运行。
+4. 命令行构建：
    ```bash
    xcodebuild -project What2REG@UM.xcodeproj -scheme What2REG@UM \
      -destination "platform=iOS Simulator,name=iPhone 17" build
    ```
 
-## 6. 线上部署
+## 6. iOS 专用 API 认证（HMAC-SHA256 时间戳签名）
+
+六个只读 GET 接口（`/course`、`/fuzzy_search`、`/catalog`、`/statistics`、`/professor`、`/comment/[code]/[prof]`）
+只向 iOS 客户端开放，浏览器或第三方直接调用一律返回 401。
+
+- 原理（2FA/TOTP 思路）：两端共享密钥；客户端用「方法 + 路径 + 时间戳」计算 HMAC-SHA256 签名放入请求头，
+  服务端以 5 秒有效期窗口校验（时间戳窗口 + 签名绑定，防重放/伪造）。
+- 请求头：
+  - `X-UM-Timestamp`：Unix 秒级时间戳
+  - `X-UM-Signature`：`HMAC-SHA256(secret, "METHOD\npathname\ntimestamp")` 的小写十六进制
+- 服务端实现：next-web `lib/ios-auth.ts` 的 `verifyIOSRequest()`；签名比对用 `crypto.timingSafeEqual` 防时序攻击；
+  时间戳与服务器偏差超过 5 秒返回 401。
+- 密钥管理：
+  - 服务端：`UM_IOS_API_SECRET` 写入 `.env.local`（gitignore；`.env.example` 仅空占位）
+  - iOS：`Secrets/UMSecrets.local`（gitignore）→ 构建脚本注入 → `GeneratedSecrets.swift`（gitignore），
+    仓库中只提交占位文件 `Secrets/UMSecrets.example`
+- 开放接口：`POST /comment`、`POST /reply`、`POST /vote` 与 Web 端共用，保持不加密钥校验。
+
+> 安全边界说明：客户端密钥可通过逆向二进制提取，此方案的目标是阻止浏览器/第三方直接调用接口，
+> 并保证密钥不进入 git 仓库；如需更强防护，升级路线为 Apple DeviceCheck / App Attest。
+
+## 7. 线上部署
 
 1. 将 next-web 部署到 https://umeh.top（Vercel 或 Cloudflare Workers，见 next-web README）。
 2. iOS 以 Release 配置打包（`APIConfig` 自动切换为 `https://umeh.top/api`）。
 3. App 使用 HTTP 明文请求仅限 DEBUG 本地联调；Release 走 HTTPS，符合 ATS 要求。
 
-## 7. 目录结构
+## 8. 目录结构
 
 ```
 What2REG@UM/
@@ -97,7 +127,7 @@ What2REG@UM/
 └── AboutView.swift        # 關於页
 ```
 
-## 8. 开发规范
+## 9. 开发规范
 
 - 每个功能实现/修复提交一个完整 commit（含中文说明）。
 - 保留完整中文文档：本 README 与 next-web/docs 下的调研/开发文档请勿删除。
