@@ -13,22 +13,12 @@ import SwiftUI
 struct CommentView: View {
     let comment: Comment
     let replies: [Comment]
-    @Binding var allComments: [Comment]
 
     /// 与 Web 端 REACTION_EMOJI_LIST 一致
     static let allEmojis = ["👍", "👎", "🤣", "💩", "❤️️"]
 
-    @State private var isReplyExpanded = false
-    @State private var isReplyComposerOpen = false
-    @State private var replyText = ""
-    @State private var isVoting = false
-
     private var voteHistory: [Vote] {
         comment.vote_history ?? []
-    }
-
-    private var myVotes: [Vote] {
-        voteHistory.filter { $0.created_by == AppIdentity.userID }
     }
 
     private func emojiCount(_ emoji: String) -> Int {
@@ -52,9 +42,9 @@ struct CommentView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // 评论内容
+                // 评论内容(小一号)
                 Text(comment.content)
-                    .font(.body)
+                    .font(.subheadline)
                     .textSelection(.enabled)
 
                 // 附图
@@ -62,24 +52,37 @@ struct CommentView: View {
                     CommentImageView(urlString: img)
                 }
 
-                // 表情投票
-                emojiVoteRow
+                // 表情反应:有则展示,无则不展示(只读)
+                reactionRow
 
-                // 回复区
-                replySection
+                // 回复:有则展示,无则不展示(只读)
+                if !replies.isEmpty {
+                    VStack(alignment: .leading, spacing: 2) {
+                        ForEach(replies) { reply in
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(reply.pub_time.commentDate)
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                                Text(reply.content)
+                                    .font(.footnote)
+                                    .textSelection(.enabled)
+                            }
+                            .padding(.leading, 10)
+                            .padding(.vertical, 3)
+                        }
+                    }
+                }
             }
         }
     }
 
-    // MARK: 表情投票
-    private var emojiVoteRow: some View {
+    /// 表情反应展示(只读胶囊,无任何提交入口)
+    @ViewBuilder
+    private var reactionRow: some View {
         let visible = Self.allEmojis.filter { emojiCount($0) > 0 }
-        let hidden = Self.allEmojis.filter { emojiCount($0) == 0 }
-        return HStack(spacing: 8) {
-            ForEach(visible, id: \.self) { emoji in
-                Button {
-                    vote(emoji: emoji)
-                } label: {
+        if !visible.isEmpty {
+            HStack(spacing: 8) {
+                ForEach(visible, id: \.self) { emoji in
                     HStack(spacing: 3) {
                         Text(emoji)
                             .font(.footnote)
@@ -89,163 +92,9 @@ struct CommentView: View {
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .glassEffect(.regular.interactive())
-                    .clipShape(Capsule())
-                    .overlay(
-                        Capsule()
-                            .strokeBorder(
-                                myVotes.contains { $0.emoji == emoji } ? Color.blue.opacity(0.55) : Color.secondary.opacity(0.25),
-                                lineWidth: 1
-                            )
-                    )
+                    .background(.quaternary.opacity(0.45), in: Capsule())
                 }
-                .buttonStyle(.plain)
-            }
-
-            if !hidden.isEmpty {
-                Menu {
-                    ForEach(hidden, id: \.self) { emoji in
-                        Button(emoji) { vote(emoji: emoji) }
-                    }
-                } label: {
-                    Image(systemName: "face.smiling.inverse")
-                        .font(.footnote)
-                        .frame(width: 30, height: 30)
-                        .glassEffect(.regular.interactive(), in: .circle)
-                }
-            }
-            Spacer()
-        }
-    }
-
-    private func vote(emoji: String) {
-        guard !isVoting else { return }
-        if myVotes.contains(where: { $0.emoji == emoji }) {
-            ToastCenter.shared.show("You have already voted for " + emoji)
-            return
-        }
-        isVoting = true
-        Task {
-            do {
-                try await APIClient.submitVote(commentID: comment.id, offset: 0, emoji: emoji)
-                // 乐观更新本地投票历史
-                appendVote(Vote(
-                    created_at: ISO8601DateFormatter().string(from: Date()),
-                    created_by: AppIdentity.userID,
-                    offset: 0,
-                    comment_id: comment.id,
-                    emoji: emoji
-                ))
-                ToastCenter.shared.show("Thanks for your vote!")
-            } catch {
-                ToastCenter.shared.show("Error: \(error.localizedDescription)")
-            }
-            isVoting = false
-        }
-    }
-
-    private func appendVote(_ vote: Vote) {
-        if let index = allComments.firstIndex(where: { $0.id == comment.id }) {
-            var updated = allComments[index]
-            let history = (updated.vote_history ?? []) + [vote]
-            updated = Comment(
-                id: updated.id, content: updated.content,
-                attendance: updated.attendance, pre: updated.pre,
-                grade: updated.grade, hard: updated.hard,
-                reward: updated.reward, recommend: updated.recommend,
-                assignment: updated.assignment, result: updated.result,
-                pub_time: updated.pub_time, upvote: updated.upvote,
-                downvote: updated.downvote, course_id: updated.course_id,
-                verify: updated.verify, verify_account: updated.verify_account,
-                content_en: updated.content_en, img: updated.img,
-                replyto: updated.replyto, vote_history: history
-            )
-            allComments[index] = updated
-        }
-    }
-
-    // MARK: 回复区
-    private var replySection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                if !replies.isEmpty {
-                    Button {
-                        withAnimation { isReplyExpanded.toggle() }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: isReplyExpanded ? "arrowtriangle.up.circle" : "arrowtriangle.down.circle")
-                            Text(isReplyExpanded ? "Close Replies" : "View Replies (\(replies.count))")
-                        }
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                }
-                Spacer()
-                Button {
-                    withAnimation { isReplyComposerOpen.toggle() }
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "arrowshape.turn.up.left.circle")
-                        Text("Reply")
-                    }
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
-
-            // 回复输入（5–250 字）
-            if isReplyComposerOpen {
-                HStack(spacing: 8) {
-                    TextField("Reply to this review...", text: $replyText, axis: .vertical)
-                        .lineLimit(1...3)
-                        .textFieldStyle(.plain)
-                        .padding(10)
-                        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
-
-                    Button("Reply") {
-                        submitReply()
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.small)
-                }
-            }
-
-            // 回复列表
-            if isReplyExpanded || (!replies.isEmpty && replies.count <= 3) {
-                ForEach(replies) { reply in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(reply.pub_time.commentDate)
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                        Text(reply.content)
-                            .font(.footnote)
-                            .textSelection(.enabled)
-                    }
-                    .padding(.leading, 10)
-                    .padding(.vertical, 3)
-                }
-            }
-        }
-    }
-
-    private func submitReply() {
-        let text = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard text.count >= 5, text.count <= 250 else {
-            ToastCenter.shared.show("Reply too short or too long! No spam allowed.")
-            return
-        }
-        Task {
-            do {
-                let reply = try await APIClient.submitReply(to: comment, content: text)
-                allComments.append(reply)
-                replyText = ""
-                isReplyComposerOpen = false
-                isReplyExpanded = true
-                ToastCenter.shared.show("Thanks for your reply!")
-            } catch {
-                ToastCenter.shared.show("Error: \(error.localizedDescription)")
+                Spacer(minLength: 0)
             }
         }
     }
@@ -438,28 +287,11 @@ struct ReviewView: View {
                 ForEach(topLevel) { comment in
                     CommentView(
                         comment: comment,
-                        replies: data.comments.filter { $0.replyto == comment.id },
-                        allComments: commentsBinding
+                        replies: data.comments.filter { $0.replyto == comment.id }
                     )
                 }
             }
         }
-    }
-
-    private var commentsBinding: Binding<[Comment]> {
-        Binding(
-            get: { data?.comments ?? [] },
-            set: { newValue in
-                if var current = data {
-                    current = ReviewPageData(
-                        prof: current.prof, course: current.course,
-                        comments: newValue, timetable: current.timetable,
-                        page: current.page, total_page: current.total_page
-                    )
-                    data = current
-                }
-            }
-        )
     }
 
     // MARK: 分页
