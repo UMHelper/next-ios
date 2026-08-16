@@ -15,6 +15,7 @@ import SwiftUI
 struct Course: Codable {
     let courseCode: String
     let courseTitle: String
+    let courseTitleChi: String?
     let offeringProgLevel: String?
     let suggestedYearOfStudy: String?
     let credits: String?

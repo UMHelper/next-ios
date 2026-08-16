@@ -94,6 +94,13 @@ struct CourseDetailView: View {
                             .font(.subheadline)
                             .lineLimit(2)
 
+                        if let chi = course.courseTitleChi, !chi.isEmpty {
+                            Text(chi)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+
                         if let level = course.offeringProgLevel,
                            let year = course.suggestedYearOfStudy {
                             Text("\(level) Course · Year \(year)")
@@ -133,16 +140,10 @@ struct CourseDetailView: View {
 
                 Divider().opacity(0.4)
 
-                // 两个可点的信息行(与 Web 端两个 Dialog 入口对应)
+                // 单个入口行:课程描述与 ILO 在同一张卡片里展示
                 detailRow(
                     icon: "doc.text",
                     title: "Course Description",
-                    action: { showCourseDetail = true }
-                )
-                Divider().opacity(0.3)
-                detailRow(
-                    icon: "checklist",
-                    title: "Intended Learning Outcomes",
                     action: { showCourseDetail = true }
                 )
 
@@ -150,7 +151,7 @@ struct CourseDetailView: View {
                     .font(.caption2)
                     .italic()
                     .foregroundStyle(.tertiary)
-                    .padding(.top, 4)
+                    .padding(.top, 2)
             }
         }
         .sheet(isPresented: $showCourseDetail) {
@@ -188,18 +189,33 @@ struct CourseDetailView: View {
         }
     }
 
-    // MARK: 课程描述 / ILO 弹层(磨砂卡片,清爽排版)
+    // MARK: 课程描述 / ILO 弹层(磨砂圆角卡片,含课程头部信息)
     private func courseDetailSheet(_ course: Course) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
+            VStack(alignment: .leading, spacing: 20) {
+                // 卡片头部:课程代码 + 英文名 + 中文名(提供上下文)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(course.courseCode)
+                        .font(.title3.weight(.bold))
+                    Text(course.courseTitle)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    if let chi = course.courseTitleChi, !chi.isEmpty {
+                        Text(chi)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                Divider()
+
                 // 课程描述
                 sheetSection(
                     icon: "doc.text.fill",
                     title: "Course Description",
                     text: course.courseDescription?.isEmpty == false ? course.courseDescription! : "No Course Description"
                 )
-
-                Divider()
 
                 // 预期学习成果
                 sheetSection(
@@ -213,26 +229,27 @@ struct CourseDetailView: View {
                     .italic()
                     .foregroundStyle(.tertiary)
             }
-            .padding(.horizontal, 22)
-            .padding(.top, 24)
-            .padding(.bottom, 28)
+            .padding(.horizontal, 24)
+            .padding(.top, 28)
+            .padding(.bottom, 30)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationCornerRadius(32)
         .presentationBackground(.thinMaterial)
     }
 
     private func sheetSection(icon: String, title: String, text: String) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 7) {
                 Image(systemName: icon)
-                    .font(.subheadline)
+                    .font(.footnote.weight(.semibold))
                     .foregroundStyle(.blue)
                 Text(title)
-                    .font(.headline)
+                    .font(.subheadline.weight(.semibold))
             }
             Text(text)
-                .font(.subheadline)
+                .font(.footnote)
                 .foregroundStyle(.secondary)
                 .lineSpacing(5)
                 .textSelection(.enabled)
