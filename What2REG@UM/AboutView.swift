@@ -19,7 +19,8 @@ struct AboutView: View {
                         Image("CatLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 56, height: 56)
+                            .frame(width: 48, height: 48)
+                            .scaleEffect(1.15)
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What2REG @UM")
                                 .font(.title3.weight(.bold))

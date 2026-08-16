@@ -99,7 +99,8 @@ struct SidebarMenu: View {
                         Image("CatLogo")
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 40, height: 40)
+                            .frame(width: 36, height: 36)
+                            .scaleEffect(1.15)
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What2REG @UM")
                                 .font(.title3.weight(.bold))
