@@ -141,9 +141,11 @@ struct SidebarMenu: View {
                         .buttonStyle(.plain)
                     }
 
-                    Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 4)
+                    Spacer(minLength: 0)
 
-                    // 外观切换:液态玻璃选择按钮(参考搜索栏)
+                    Divider().opacity(0.4).padding(.horizontal, 14).padding(.bottom, 4)
+
+                    // 外观切换(置底):液态玻璃选择按钮(参考搜索栏)
                     VStack(alignment: .leading, spacing: 8) {
                         SectionHeader(title: "Appearance")
                         GlassEffectContainer {
@@ -176,9 +178,7 @@ struct SidebarMenu: View {
                         .id(themeExpanded)
                     }
                     .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-
-                    Spacer(minLength: 0)
+                    .padding(.vertical, 6)
 
                     Text("Data Source: reg.um.edu.mo")
                         .font(.caption2)
