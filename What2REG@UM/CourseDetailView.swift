@@ -118,23 +118,21 @@ struct CourseDetailView: View {
 
                 Divider().opacity(0.4)
 
-                HStack {
-                    fieldColumn("Credits", course.credits ?? "N/A")
-                    Spacer()
-                    fieldColumn("Dept", course.offeringDept ?? "N/A")
-                    Spacer()
-                    fieldColumn("Faculty", course.offeringUnit ?? "N/A")
-                    Spacer()
-                    fieldColumn("Language", course.mediumOfInstruction ?? "N/A")
-                }
-                .font(.caption)
-
-                HStack {
-                    fieldColumn("Grading", course.gradingSystem ?? "N/A")
-                    Spacer()
-                    fieldColumn("Course Type", course.courseType ?? "N/A")
-                    Spacer()
-                    fieldColumn("Duration", course.duration ?? "N/A")
+                // 七个信息:四列网格,左右对齐(第二行末列留空占位)
+                Grid(horizontalSpacing: 12, verticalSpacing: 12) {
+                    GridRow {
+                        fieldColumn("Credits", course.credits ?? "N/A")
+                        fieldColumn("Dept", course.offeringDept ?? "N/A")
+                        fieldColumn("Faculty", course.offeringUnit ?? "N/A")
+                        fieldColumn("Language", course.mediumOfInstruction ?? "N/A")
+                    }
+                    GridRow {
+                        fieldColumn("Grading", course.gradingSystem ?? "N/A")
+                        fieldColumn("Course Type", course.courseType ?? "N/A")
+                        fieldColumn("Duration", course.duration ?? "N/A")
+                        Color.clear
+                            .frame(maxWidth: .infinity)
+                    }
                 }
                 .font(.caption)
 
@@ -187,6 +185,7 @@ struct CourseDetailView: View {
             Text(value)
                 .lineLimit(1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     // MARK: 课程描述 / ILO 弹层(磨砂圆角卡片,含课程头部信息)
