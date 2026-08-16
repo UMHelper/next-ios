@@ -85,19 +85,19 @@ struct CourseDetailView: View {
         return GlassCard(cornerRadius: 26, padding: 18) {
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 5) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text(course.courseCode)
-                            .font(.system(.title, design: .rounded, weight: .bold))
+                            .font(.system(.title3, design: .rounded, weight: .bold))
                             .foregroundStyle(.primary)
 
                         Text(course.courseTitle)
-                            .font(.headline)
+                            .font(.subheadline)
                             .lineLimit(2)
 
                         if let level = course.offeringProgLevel,
                            let year = course.suggestedYearOfStudy {
                             Text("\(level) Course · Year \(year)")
-                                .font(.caption)
+                                .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -120,7 +120,7 @@ struct CourseDetailView: View {
                     Spacer()
                     fieldColumn("Language", course.mediumOfInstruction ?? "N/A")
                 }
-                .font(.footnote)
+                .font(.caption)
 
                 HStack {
                     fieldColumn("Grading", course.gradingSystem ?? "N/A")
@@ -129,7 +129,7 @@ struct CourseDetailView: View {
                     Spacer()
                     fieldColumn("Duration", course.duration ?? "N/A")
                 }
-                .font(.footnote)
+                .font(.caption)
 
                 Divider().opacity(0.4)
 
@@ -162,17 +162,17 @@ struct CourseDetailView: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.footnote)
+                    .font(.caption)
                     .foregroundStyle(.blue)
                 Text(title)
-                    .font(.subheadline)
+                    .font(.footnote)
                     .foregroundStyle(.primary)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(.vertical, 9)
+            .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
@@ -181,7 +181,7 @@ struct CourseDetailView: View {
     private func fieldColumn(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .font(.caption2)
+                .font(.system(size: 10))
                 .foregroundStyle(.tertiary)
             Text(value)
                 .lineLimit(1)
