@@ -168,8 +168,25 @@ struct SearchResultView: View {
     ]
 
     private func options(for key: String) -> [String] {
+        // 依据其他维度的当前筛选结果联动计算候选项
+        let base = courses.filter { course in
+            for (k, v) in filters where k != key && v != "All" {
+                let match: Bool = {
+                    switch k {
+                    case "Is_Offered":
+                        return (course.Is_Offered ?? 0) == (v == "Offered" ? 1 : 0)
+                    case "suggestedYearOfStudy":
+                        return String(course.suggestedYearOfStudy ?? 0) == v
+                    default:
+                        return (courseField(course, k) ?? "") == v
+                    }
+                }()
+                if !match { return false }
+            }
+            return true
+        }
         var values: Set<String> = []
-        for course in courses {
+        for course in base {
             if key == "Is_Offered" {
                 values.insert((course.Is_Offered ?? 0) == 1 ? "Offered" : "Not Offered")
             } else if key == "suggestedYearOfStudy" {
@@ -256,6 +273,31 @@ struct SearchResultView: View {
         if !visibleKeys.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
+                    // 一键清除所有筛选
+                    if filters.values.contains(where: { $0 != "All" }) {
+                        Button {
+                            withAnimation(.spring(duration: 0.4)) {
+                                filters = [:]
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.system(size: 9, weight: .semibold))
+                                Text("Clear")
+                                    .font(.caption.weight(.semibold))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .glassEffect(.regular.interactive())
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                            )
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     ForEach(visibleKeys, id: \.0) { key, label in
                         let current = filters[key] ?? "All"
                         let isActive = current != "All"
