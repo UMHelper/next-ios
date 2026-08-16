@@ -30,7 +30,7 @@ struct AboutView: View {
                     }
                 }
 
-                SectionHeader(title: "Community")
+                SectionHeader(title: "Links")
                     .padding(.horizontal, 16)
 
                 // 社区链接(单卡详情行,发丝分割线)
