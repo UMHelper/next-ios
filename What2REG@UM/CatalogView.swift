@@ -2,9 +2,7 @@
 //  CatalogView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  学院目录：按学院/系/GE 分类浏览课程。
-//  对应 Web 端 /catalog/[...departments] 页。
+//  学院目录：按学院/系/GE 分类浏览课程（玻璃列表 + 玻璃筛选胶囊）。
 //
 
 import SwiftUI
@@ -31,7 +29,7 @@ struct CatalogView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        Group {
             if selectedUnit == nil {
                 facultyList
             } else {
@@ -40,9 +38,6 @@ struct CatalogView: View {
         }
         .navigationTitle("Catalog")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
         .task {
             if let initialUnit, selectedUnit == nil {
                 open(unit: initialUnit)
@@ -52,72 +47,80 @@ struct CatalogView: View {
 
     // MARK: 学院列表
     private var facultyList: some View {
-        List {
-            Section("Faculties") {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Faculties")
                 ForEach(Self.faculties, id: \.self) { unit in
                     Button {
                         open(unit: unit)
                     } label: {
-                        HStack {
-                            Text(unit)
-                                .font(.headline)
-                            Spacer()
-                            if let depts = Self.facultyDept[unit], !depts.isEmpty {
-                                Text(depts.joined(separator: " · "))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
-                        }
+                        facultyCard(unit)
                     }
                     .buttonStyle(.plain)
                 }
-            }
 
-            Section("GE Course") {
+                SectionHeader(title: "GE Course")
+                    .padding(.top, 8)
                 Button {
                     open(unit: "gecourse")
                 } label: {
-                    HStack {
-                        Text("GE Course")
-                            .font(.headline)
-                        Spacer()
-                        Text(Self.geCategories.joined(separator: " · "))
+                    facultyCard("GE Course")
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
+        }
+    }
+
+    private func facultyCard(_ unit: String) -> some View {
+        GlassCard(padding: 14) {
+            HStack(spacing: 14) {
+                Image(systemName: unit == "GE Course" ? "globe.asia.australia.fill" : "building.columns.fill")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .frame(width: 42, height: 42)
+                    .background(.blue.gradient, in: RoundedRectangle(cornerRadius: 13))
+                    .glassEffect()
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(unit)
+                        .font(.headline)
+                    let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
+                    if !depts.isEmpty {
+                        Text(depts.joined(separator: " · "))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
                     }
                 }
-                .buttonStyle(.plain)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.tertiary)
             }
         }
     }
 
-    // MARK: 课程列表（含系别/GE 分类筛选）
+    // MARK: 课程列表
     private var courseList: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 10) {
+            // 返回 + 标题
             HStack {
-                Button {
+                GlassIconButton(systemName: "chevron.left", size: 36) {
                     selectedUnit = nil
                     selectedDept = nil
                     courses = []
-                } label: {
-                    Label(selectedUnit?.uppercased() ?? "", systemImage: "chevron.backward")
-                        .font(.subheadline)
-                        .bold()
                 }
-                .buttonStyle(.plain)
+                Text(selectedUnit?.uppercased() ?? "")
+                    .font(.headline)
                 Spacer()
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, 20)
+            .padding(.top, 4)
 
-            // 系别筛选 chips
+            // 系别筛选胶囊
             let options = deptOptions
             if !options.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -133,7 +136,7 @@ struct CatalogView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, 20)
                 }
             }
 
@@ -149,13 +152,14 @@ struct CatalogView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 12) {
+                    LazyVStack(alignment: .leading, spacing: 14) {
                         ForEach(courses) { course in
-                            CourseRow(course: course, loadingCourseCode: nil)
+                            CourseRow(course: course)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 4)
+                    .padding(.bottom, 20)
                 }
             }
         }
@@ -164,13 +168,16 @@ struct CatalogView: View {
     private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.caption)
-                .bold()
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(selected ? Color.accentColor : Color.clear, in: Capsule())
+                .font(.caption.weight(.semibold))
+                .padding(.horizontal, 14)
+                .padding(.vertical, 7)
                 .foregroundStyle(selected ? .white : .primary)
-                .overlay(Capsule().stroke(.separator.opacity(0.4)))
+                .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive())
+                .clipShape(Capsule())
+                .overlay(
+                    Capsule()
+                        .strokeBorder(selected ? Color.clear : Color.secondary.opacity(0.25), lineWidth: 1)
+                )
         }
         .buttonStyle(.plain)
     }

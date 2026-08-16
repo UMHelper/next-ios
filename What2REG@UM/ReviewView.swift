@@ -2,14 +2,13 @@
 //  ReviewView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2025/9/25.
-//  评价页：教授评分仪表 + 评论列表（表情投票/回复/分页）+ 时间表 + 管理員通知。
-//  对应 Web 端 /reviews/[code]/[...prof] 页。
+//  评价页：教授评分仪表 + 评论（表情投票/回复/分页）+ 时间表 + 管理员通知。
+//  全部采用晶边玻璃卡片。
 //
 
 import SwiftUI
 
-// MARK: - 评论卡片（与 Web 端 CommentCard + EmojiVote + ReplyComponent 对应）
+// MARK: - 评论卡片
 
 struct CommentView: View {
     let comment: Comment
@@ -37,40 +36,39 @@ struct CommentView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // 推荐星级 + 日期 + 认证徽章（与 Web 端 CardHeader 对应）
-            HStack {
-                NonInteractiveStarView(rating: comment.recommend)
-                Spacer()
-                if comment.verify == 1 {
-                    Image(systemName: "checkmark.seal.fill")
+        GlassCard(padding: 16) {
+            VStack(alignment: .leading, spacing: 12) {
+                // 推荐星级 + 日期 + 认证徽章
+                HStack {
+                    NonInteractiveStarView(rating: comment.recommend)
+                    Spacer()
+                    if comment.verify == 1 {
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.footnote)
+                            .foregroundStyle(.green)
+                    }
+                    Text(comment.pub_time.commentDate)
                         .font(.footnote)
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.secondary)
                 }
-                Text(comment.pub_time.commentDate)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+
+                // 评论内容
+                Text(comment.content)
+                    .font(.body)
+                    .textSelection(.enabled)
+
+                // 附图
+                if let img = comment.img, !img.isEmpty {
+                    CommentImageView(urlString: img)
+                }
+
+                // 表情投票
+                emojiVoteRow
+
+                // 回复区
+                replySection
             }
-
-            // 评论内容
-            Text(comment.content)
-                .font(.body)
-                .textSelection(.enabled)
-
-            // 附图
-            if let img = comment.img, !img.isEmpty {
-                CommentImageView(urlString: img)
-            }
-
-            // 表情投票（已有表情胶囊 + 更多表情入口）
-            emojiVoteRow
-
-            // 回复区
-            replySection
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 14)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 
     // MARK: 表情投票
@@ -91,13 +89,15 @@ struct CommentView: View {
                     }
                     .padding(.horizontal, 10)
                     .padding(.vertical, 5)
-                    .background(
-                        myVotes.contains { $0.emoji == emoji }
-                            ? Color.accentColor.opacity(0.18)
-                            : Color.clear,
-                        in: Capsule()
+                    .glassEffect(.regular.interactive())
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
+                                myVotes.contains { $0.emoji == emoji } ? Color.blue.opacity(0.55) : Color.secondary.opacity(0.25),
+                                lineWidth: 1
+                            )
                     )
-                    .overlay(Capsule().stroke(.separator.opacity(0.4)))
                 }
                 .buttonStyle(.plain)
             }
@@ -110,8 +110,8 @@ struct CommentView: View {
                 } label: {
                     Image(systemName: "face.smiling.inverse")
                         .font(.footnote)
-                        .padding(7)
-                        .background(.quaternary.opacity(0.6), in: Circle())
+                        .frame(width: 30, height: 30)
+                        .glassEffect(.regular.interactive(), in: .circle)
                 }
             }
             Spacer()
@@ -164,7 +164,7 @@ struct CommentView: View {
         }
     }
 
-    // MARK: 回复区（与 Web 端 ReplyComponent 对应）
+    // MARK: 回复区
     private var replySection: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -195,14 +195,14 @@ struct CommentView: View {
                 .buttonStyle(.plain)
             }
 
-            // 回复输入（与 Web 端 ReplySubmit 对应，5–250 字）
+            // 回复输入（5–250 字）
             if isReplyComposerOpen {
                 HStack(spacing: 8) {
                     TextField("Reply to this review...", text: $replyText, axis: .vertical)
                         .lineLimit(1...3)
                         .textFieldStyle(.plain)
-                        .padding(8)
-                        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 10))
+                        .padding(10)
+                        .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 12))
 
                     Button("Reply") {
                         submitReply()
@@ -212,7 +212,7 @@ struct CommentView: View {
                 }
             }
 
-            // 回复列表（与 Web 端 ReplyCard 对应）
+            // 回复列表
             if isReplyExpanded || (!replies.isEmpty && replies.count <= 3) {
                 ForEach(replies) { reply in
                     VStack(alignment: .leading, spacing: 2) {
@@ -223,7 +223,7 @@ struct CommentView: View {
                             .font(.footnote)
                             .textSelection(.enabled)
                     }
-                    .padding(.leading, 8)
+                    .padding(.leading, 10)
                     .padding(.vertical, 3)
                 }
             }
@@ -280,9 +280,6 @@ struct ReviewView: View {
         }
         .navigationTitle("\(code) · \(prof)")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
         .task {
             guard data == nil else { return }
             await load(page: page)
@@ -318,30 +315,31 @@ struct ReviewView: View {
 
     private func content(_ data: ReviewPageData) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 header(data)
                 gaugeCard(data)
                 commentsSection(data)
                 pagination(data)
                 adminNotice(data)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 40)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
         .sheet(isPresented: $showTimetable) {
             TimetableSheet(timetables: data.timetable, code: code, prof: prof)
         }
     }
 
-    // MARK: 头部（与 Web 端 ReviewPage 头部对应）
+    // MARK: 头部
     private func header(_ data: ReviewPageData) -> some View {
-        GlassEffectContainer {
+        GlassCard(cornerRadius: 26, padding: 18) {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     NavigationLink(value: Route.course(code)) {
                         Text(data.course.New_code)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
+                            .font(.subheadline.weight(.semibold))
+                            .foregroundStyle(.blue)
                     }
                     .buttonStyle(.plain)
                     Spacer()
@@ -353,19 +351,21 @@ struct ReviewView: View {
                 if let titleEng = data.course.courseTitleEng, !titleEng.isEmpty {
                     Text(titleEng)
                         .font(.headline)
-                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
                 }
                 if let titleChi = data.course.courseTitleChi, !titleChi.isEmpty {
                     Text(titleChi)
-                        .font(.subheadline)
-                        .foregroundStyle(.tertiary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
                 }
 
                 NavigationLink(value: Route.professor(prof)) {
                     HStack(spacing: 6) {
+                        Image(systemName: "person.crop.circle.fill")
+                            .foregroundStyle(.blue)
                         Text(data.prof.prof_id)
-                            .font(.title2)
-                            .bold()
+                            .font(.title2.weight(.bold))
                         Image(systemName: "chevron.right")
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -373,60 +373,66 @@ struct ReviewView: View {
                 }
                 .buttonStyle(.plain)
 
-                // 提交评价 + 时间表按钮（与 Web 端 Submit Review / Timetable 按钮对应）
                 HStack(spacing: 10) {
                     NavigationLink {
                         SubmitReviewView(code: code, prof: prof)
                     } label: {
                         Label("Submit Review", systemImage: "square.and.pencil")
-                            .font(.footnote)
-                            .bold()
+                            .font(.footnote.weight(.semibold))
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 8)
+                            .foregroundStyle(.white)
+                            .glassEffect(.regular.tint(.blue).interactive())
+                            .clipShape(Capsule())
                     }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.blue)
+                    .buttonStyle(.plain)
 
                     if !data.timetable.isEmpty {
                         Button {
                             showTimetable = true
                         } label: {
                             Label("Timetable", systemImage: "calendar")
-                                .font(.footnote)
-                                .bold()
+                                .font(.footnote.weight(.semibold))
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 8)
+                                .glassEffect(.regular.interactive())
+                                .clipShape(Capsule())
                         }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.plain)
                     }
                 }
             }
-            .padding(16)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20))
     }
 
-    // MARK: 评分仪表（与 Web 端右侧 Card 对应）
+    // MARK: 评分仪表
     private func gaugeCard(_ data: ReviewPageData) -> some View {
-        HStack {
-            ScoreGauge(title: "Overall", value: data.prof.result)
-            Spacer()
-            ScoreGauge(title: "Grade", value: data.prof.grade)
-            Spacer()
-            ScoreGauge(title: "Difficulty", value: data.prof.hard)
-            Spacer()
-            ScoreGauge(title: "Usefulness", value: data.prof.reward)
+        GlassCard(padding: 18) {
+            HStack {
+                ScoreGauge(title: "Overall", value: data.prof.result)
+                Spacer()
+                ScoreGauge(title: "Grade", value: data.prof.grade)
+                Spacer()
+                ScoreGauge(title: "Difficulty", value: data.prof.hard)
+                Spacer()
+                ScoreGauge(title: "Usefulness", value: data.prof.reward)
+            }
         }
-        .padding(16)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 
-    // MARK: 评论列表（仅顶层评论 + 其回复，与 Web 端 Comments/Masonry 对应）
+    // MARK: 评论列表
     private func commentsSection(_ data: ReviewPageData) -> some View {
         let topLevel = data.comments.filter { $0.replyto == nil }
-        return VStack(alignment: .leading, spacing: 12) {
+        return VStack(alignment: .leading, spacing: 14) {
+            SectionHeader(title: "Reviews", subtitle: "\(data.prof.comments) comment\(data.prof.comments == 1 ? "" : "s")")
+
             if topLevel.isEmpty {
-                Text("No comment yet. Be the first to sumbit your review!")
-                    .font(.headline)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                GlassCard {
+                    Text("No comment yet. Be the first to submit your review!")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity)
+                }
             } else {
                 ForEach(topLevel) { comment in
                     CommentView(
@@ -455,60 +461,66 @@ struct ReviewView: View {
         )
     }
 
-    // MARK: 分页（与 Web 端 ReviewPagination 对应）
+    // MARK: 分页
     private func pagination(_ data: ReviewPageData) -> some View {
-        HStack {
-            Button {
-                guard page > 1 else { return }
-                Task { await load(page: page - 1) }
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-            .disabled(page <= 1)
+        GlassCard(padding: 10) {
+            HStack {
+                Button {
+                    guard page > 1 else { return }
+                    Task { await load(page: page - 1) }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .frame(width: 36, height: 36)
+                        .glassEffect(.regular.interactive(), in: .circle)
+                }
+                .buttonStyle(.plain)
+                .disabled(page <= 1)
+                .opacity(page <= 1 ? 0.35 : 1)
 
-            Spacer()
-            Text("\(page) / \(data.total_page)")
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-            Spacer()
+                Spacer()
+                Text("\(page) / \(data.total_page)")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                Spacer()
 
-            Button {
-                guard page < data.total_page else { return }
-                Task { await load(page: page + 1) }
-            } label: {
-                Image(systemName: "chevron.right")
+                Button {
+                    guard page < data.total_page else { return }
+                    Task { await load(page: page + 1) }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .frame(width: 36, height: 36)
+                        .glassEffect(.regular.interactive(), in: .circle)
+                }
+                .buttonStyle(.plain)
+                .disabled(page >= data.total_page)
+                .opacity(page >= data.total_page ? 0.35 : 1)
             }
-            .disabled(page >= data.total_page)
         }
-        .buttonStyle(.bordered)
-        .padding(.vertical, 8)
     }
 
-    // MARK: 管理員通知（与 Web 端 ReviewNotice 对应）
+    // MARK: 管理员通知
     @ViewBuilder
     private func adminNotice(_ data: ReviewPageData) -> some View {
         let note = data.prof.admin_note
         let noteEn = data.prof.admin_note_en
         if (note?.isEmpty == false) || (noteEn?.isEmpty == false) {
-            VStack(alignment: .leading, spacing: 6) {
-                Label("Message From UMHelper:", systemImage: "exclamationmark.triangle.fill")
-                    .font(.footnote)
-                    .bold()
-                if let noteEn, !noteEn.isEmpty {
-                    Text(noteEn).font(.footnote)
-                } else if let note, !note.isEmpty {
-                    Text(note).font(.footnote)
+            GlassCard(padding: 14) {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("Message From UMHelper:", systemImage: "exclamationmark.triangle.fill")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.orange)
+                    if let noteEn, !noteEn.isEmpty {
+                        Text(noteEn).font(.footnote)
+                    } else if let note, !note.isEmpty {
+                        Text(note).font(.footnote)
+                    }
                 }
             }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glassEffect(in: .rect(cornerRadius: 16.0))
-            .tint(.red)
         }
     }
 }
 
-// MARK: - 时间表弹窗（与 Web 端 TimetableCard Popover 对应）
+// MARK: - 时间表弹层
 
 struct TimetableSheet: View {
     let timetables: [Timetable]
@@ -519,28 +531,33 @@ struct TimetableSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
-                    if timetables.isEmpty {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("No schedule information found.")
-                                .font(.body)
-                            Text("Please refer to the official documents of the Registry.")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+            ZStack {
+                LiquidBackground()
+                ScrollView {
+                    VStack(alignment: .leading, spacing: 14) {
+                        if timetables.isEmpty {
+                            GlassCard {
+                                VStack(alignment: .leading, spacing: 6) {
+                                    Text("No schedule information found.")
+                                        .font(.body)
+                                    Text("Please refer to the official documents of the Registry.")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                        } else {
+                            ForEach(timetables, id: \.self) { timetable in
+                                sectionCard(timetable)
+                            }
                         }
-                    } else {
-                        ForEach(timetables, id: \.self) { timetable in
-                            sectionCard(timetable)
-                        }
-                    }
 
-                    Text("Data Source: reg.um.edu.mo")
-                        .font(.caption2)
-                        .italic()
-                        .foregroundStyle(.tertiary)
+                        Text("Data Source: reg.um.edu.mo")
+                            .font(.caption2)
+                            .italic()
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(20)
                 }
-                .padding(16)
             }
             .navigationTitle("Timetable")
             .navigationBarTitleDisplayMode(.inline)
@@ -552,40 +569,39 @@ struct TimetableSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(.clear)
     }
 
     private func sectionCard(_ timetable: Timetable) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Section \(timetable.section)")
-                .font(.subheadline)
-                .bold()
-                .padding(.horizontal, 10)
-                .padding(.vertical, 5)
-                .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 8))
+        GlassCard(padding: 14) {
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Section \(timetable.section)")
+                    .font(.subheadline.weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 5)
+                    .glassEffect(.regular.tint(.blue.opacity(0.9)))
+                    .clipShape(Capsule())
+                    .foregroundStyle(.white)
 
-            ForEach(timetable.schedules, id: \.self) { schedule in
-                HStack {
-                    Text(schedule.date).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(schedule.time).frame(maxWidth: .infinity, alignment: .leading)
-                    Text(schedule.location).frame(maxWidth: .infinity, alignment: .leading)
+                ForEach(timetable.schedules, id: \.self) { schedule in
+                    HStack {
+                        Text(schedule.date).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(schedule.time).frame(maxWidth: .infinity, alignment: .leading)
+                        Text(schedule.location).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .font(.caption)
                 }
-                .font(.caption)
-            }
 
-            // 加入课程表购物车（与 Web 端 Add to Schedule Cart 对应）
-            Button {
-                TimetableCartStore.shared.add(timetable, code: code, prof: prof)
-                ToastCenter.shared.show("Added to timetable")
-            } label: {
-                Label("Add to Schedule Cart", systemImage: "cart.badge.plus")
-                    .font(.footnote)
-                    .bold()
+                GlassActionButton(
+                    title: "Add to Schedule Cart",
+                    systemImage: "cart.badge.plus",
+                    tint: .blue,
+                    disabled: TimetableCartStore.shared.contains(section: timetable.section, code: code)
+                ) {
+                    TimetableCartStore.shared.add(timetable, code: code, prof: prof)
+                    ToastCenter.shared.show("Added to timetable")
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .tint(.blue)
-            .disabled(TimetableCartStore.shared.contains(section: timetable.section, code: code))
         }
-        .padding(14)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 }

@@ -2,8 +2,8 @@
 //  What2REG_UMApp.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2025/9/18.
-//  App 入口：iOS 26 Liquid Glass 选项卡 + 各标签页独立导航栈。
+//  App 入口：无标签栏设计 —— 左上角菜单打开玻璃侧边栏，
+//  底部常驻液态玻璃搜索栏，动态蓝色变换背景贯穿所有页面。
 //
 
 import SwiftUI
@@ -12,59 +12,81 @@ import SwiftUI
 struct What2REG_UMApp: App {
     var body: some Scene {
         WindowGroup {
-            RootTabView()
+            RootView()
         }
     }
 }
 
-/// 根视图：液态玻璃 TabView（iOS 26 Liquid Glass 设计语言）
-struct RootTabView: View {
+// MARK: - 根视图
+
+struct RootView: View {
+    @State private var path: [Route] = []
+    @State private var selection: SidebarDestination = .home
+    @State private var isSidebarOpen = false
+    @AppStorage("app.theme") private var themeRaw = AppTheme.system.rawValue
+
+    private var theme: Binding<AppTheme> {
+        Binding(
+            get: { AppTheme(rawValue: themeRaw) ?? .system },
+            set: { themeRaw = $0.rawValue }
+        )
+    }
+
     var body: some View {
-        TabView {
-            Tab("Home", systemImage: "house.fill") {
-                NavigationStack {
-                    HomeView()
-                        .navigationDestination(for: Route.self) { route in
-                            route.destination
+        ZStack {
+            LiquidBackground()
+
+            NavigationStack(path: $path) {
+                selectedRoot
+                    .navigationDestination(for: Route.self) { route in
+                        route.destination
+                    }
+                    .toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            GlassIconButton(systemName: "line.3.horizontal") {
+                                withAnimation(.spring(duration: 0.35)) {
+                                    isSidebarOpen = true
+                                }
+                            }
+                            .scaleEffect(0.92)
                         }
+                    }
+                    .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
+            }
+            .onChange(of: selection) {
+                path = []
+            }
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                BottomSearchBar { mode, keyword in
+                    path.append(.search(mode: mode, keyword: keyword))
                 }
             }
 
-            Tab("Search", systemImage: "magnifyingglass") {
-                NavigationStack {
-                    SearchTabRootView()
-                        .navigationDestination(for: Route.self) { route in
-                            route.destination
-                        }
-                }
-            }
+            // 侧边栏（最上层）
+            SidebarMenu(isOpen: $isSidebarOpen, selection: $selection, theme: theme)
 
-            Tab("Timetable", systemImage: "calendar") {
-                NavigationStack {
-                    TimetableView()
-                }
-            }
-
-            Tab("Catalog", systemImage: "books.vertical.fill") {
-                NavigationStack {
-                    CatalogView()
-                }
-            }
-
-            Tab("About", systemImage: "info.circle.fill") {
-                NavigationStack {
-                    AboutView()
-                }
-            }
-        }
-        .tabViewStyle(.sidebarAdaptable)
-        .overlay(alignment: .top) {
+            // 全局提示
             ToastOverlay()
+                .frame(maxHeight: .infinity, alignment: .top)
+                .padding(.top, 8)
+        }
+        .preferredColorScheme(theme.wrappedValue.colorScheme)
+    }
+
+    @ViewBuilder
+    private var selectedRoot: some View {
+        switch selection {
+        case .home: HomeView()
+        case .search: SearchView()
+        case .timetable: TimetableView()
+        case .catalog: CatalogView()
+        case .about: AboutView()
         }
     }
 }
 
-/// 统一路由（课程代码 → 课程详情，课程+教授 → 评价页，教授 → 教授页）
+// MARK: - 统一路由
+
 struct Route: Hashable {
     enum Kind: Hashable {
         case course(code: String)

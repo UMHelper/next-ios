@@ -2,9 +2,7 @@
 //  TimetableView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  课程表页：购物车条目 + 周一至周五周历视图。
-//  对应 Web 端 /timetable 页（TimetableCalendar + Timetable Cart）。
+//  课程表页：购物车条目 + MON–FRI 周历（玻璃卡片 + 彩色课程块）。
 //
 
 import SwiftUI
@@ -20,7 +18,7 @@ struct TimetableView: View {
             VStack(alignment: .leading, spacing: 16) {
                 if cart.items.isEmpty {
                     ContentUnavailableView {
-                        Label("NO course in your timetable cart", systemImage: "calendar.badge.plus")
+                        Label("No courses in your timetable cart", systemImage: "calendar.badge.plus")
                     } description: {
                         Text("Add sections to the timetable cart from course or review pages")
                     }
@@ -31,36 +29,36 @@ struct TimetableView: View {
                     calendarSection
                 }
             }
-            .padding(16)
-            .padding(.bottom, 40)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
         .navigationTitle("Timetable")
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    // MARK: 购物车条目（与 Web 端 TimetableCard horizontal 对应）
+    // MARK: 购物车条目
     private var cartSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Timetable Cart")
-                    .font(.headline)
+                SectionHeader(title: "Timetable Cart")
                 Spacer()
                 Button {
                     cart.clear()
                 } label: {
                     Text("Clear Cart")
-                        .font(.footnote)
-                        .bold()
+                        .font(.footnote.weight(.semibold))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(.red.opacity(0.85), in: Capsule())
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .glassEffect(.regular.tint(.red).interactive())
+                        .clipShape(Capsule())
                 }
                 .buttonStyle(.plain)
             }
 
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 10) {
+                HStack(spacing: 12) {
                     ForEach(cart.items) { item in
                         cartCard(item)
                     }
@@ -70,70 +68,68 @@ struct TimetableView: View {
     }
 
     private func cartCard(_ item: TimetableCartItem) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(item.code).font(.subheadline).bold()
-                    Text(item.prof).font(.caption2).foregroundStyle(.secondary)
-                    Text("Section \(item.section)").font(.caption2).foregroundStyle(.secondary)
+        GlassCard(cornerRadius: 18, padding: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(item.code).font(.subheadline.weight(.bold))
+                        Text(item.prof).font(.caption2).foregroundStyle(.secondary).lineLimit(1)
+                        Text("Section \(item.section)").font(.caption2).foregroundStyle(.secondary)
+                    }
+                    Button {
+                        cart.remove(section: item.section, code: item.code)
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                    }
+                    .buttonStyle(.plain)
                 }
-                Button {
-                    cart.remove(section: item.section, code: item.code)
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                ForEach(item.schedules, id: \.self) { schedule in
+                    HStack(spacing: 8) {
+                        Text(schedule.date).frame(width: 34, alignment: .leading)
+                        Text(schedule.time).frame(width: 90, alignment: .leading)
+                        Text(schedule.location).lineLimit(1)
+                    }
+                    .font(.caption2)
                 }
-                .buttonStyle(.plain)
-            }
-            ForEach(item.schedules, id: \.self) { schedule in
-                HStack(spacing: 8) {
-                    Text(schedule.date).frame(width: 34, alignment: .leading)
-                    Text(schedule.time).frame(width: 90, alignment: .leading)
-                    Text(schedule.location).lineLimit(1)
-                }
-                .font(.caption2)
             }
         }
-        .padding(10)
-        .glassEffect(in: .rect(cornerRadius: 14))
-        .frame(minWidth: 220)
+        .frame(minWidth: 230)
     }
 
-    // MARK: 周历（MON–FRI，8:00–20:00，与 Web 端 Scheduler 对应）
+    // MARK: 周历
     private var calendarSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Calendar")
-                .font(.headline)
+        VStack(alignment: .leading, spacing: 12) {
+            SectionHeader(title: "Calendar", subtitle: "MON – FRI · 8:00 – 20:00")
 
-            HStack(alignment: .top, spacing: 4) {
-                // 时间列
-                VStack(spacing: 0) {
-                    Color.clear.frame(height: 22)
-                    ForEach(Self.hours, id: \.self) { hour in
-                        Text(String(format: "%02d:00", hour))
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
-                            .frame(height: 56, alignment: .top)
+            GlassCard(cornerRadius: 22, padding: 12) {
+                HStack(alignment: .top, spacing: 4) {
+                    // 时间列
+                    VStack(spacing: 0) {
+                        Color.clear.frame(height: 22)
+                        ForEach(Self.hours, id: \.self) { hour in
+                            Text(String(format: "%02d:00", hour))
+                                .font(.system(size: 9))
+                                .foregroundStyle(.tertiary)
+                                .frame(height: 56, alignment: .top)
+                        }
+                    }
+                    .frame(width: 40)
+
+                    // 每天一列
+                    ForEach(Self.weekDays, id: \.self) { day in
+                        dayColumn(day)
                     }
                 }
-                .frame(width: 44)
-
-                // 每天一列
-                ForEach(Self.weekDays, id: \.self) { day in
-                    dayColumn(day)
-                }
             }
-            .padding(8)
-            .glassEffect(in: .rect(cornerRadius: 16))
         }
     }
 
     private func dayColumn(_ day: String) -> some View {
         VStack(spacing: 0) {
             Text(day)
-                .font(.caption)
-                .bold()
+                .font(.system(size: 10, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(height: 22)
 
@@ -205,20 +201,30 @@ struct TimetableView: View {
     private func eventBlock(_ event: DayEvent) -> some View {
         VStack(alignment: .leading, spacing: 1) {
             Text("\(event.item.code)-\(event.item.section)")
-                .font(.caption2)
-                .bold()
+                .font(.system(size: 9, weight: .bold))
                 .lineLimit(1)
             Text(event.schedule.time)
-                .font(.caption2)
+                .font(.system(size: 8))
                 .lineLimit(1)
             Text(event.schedule.location)
-                .font(.caption2)
+                .font(.system(size: 8))
                 .lineLimit(1)
         }
         .padding(4)
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: event.height)
-        .background(event.item.color.opacity(0.85), in: RoundedRectangle(cornerRadius: 6))
+        .background(
+            LinearGradient(
+                colors: [event.item.color, event.item.color.opacity(0.75)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            ),
+            in: RoundedRectangle(cornerRadius: 7)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 7)
+                .strokeBorder(.white.opacity(0.4), lineWidth: 0.8)
+        )
         .foregroundStyle(.white)
         .clipped()
     }

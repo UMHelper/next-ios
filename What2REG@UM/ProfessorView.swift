@@ -2,9 +2,7 @@
 //  ProfessorView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  教授页：所授课程列表（评分卡片）。
-//  对应 Web 端 /professor/[...name] 页。
+//  教授页：所授课程列表（评分玻璃卡片）。
 //
 
 import SwiftUI
@@ -35,7 +33,8 @@ struct ProfessorView: View {
                 }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: 14) {
+                        SectionHeader(title: "Courses", subtitle: "\(courses.count) course\(courses.count == 1 ? "" : "s")")
                         ForEach(courses) { prof in
                             NavigationLink(value: Route.review(prof.course_id, prof: prof.prof_id)) {
                                 ProfCourseCard(prof: prof)
@@ -43,16 +42,14 @@ struct ProfessorView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 40)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 20)
                 }
             }
         }
         .navigationTitle(profName)
         .navigationBarTitleDisplayMode(.large)
-        .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
         .task {
             guard courses.isEmpty else { return }
             await load()
@@ -71,49 +68,45 @@ struct ProfessorView: View {
     }
 }
 
-/// 教授课程卡片（与 Web 端 ProfCourseCard 对应：课程代码 + 评分 + Offered 状态）
+/// 教授课程卡片（课程代码 + 评分 + Offered 状态）
 struct ProfCourseCard: View {
     let prof: Prof
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
-                Text(prof.course_id)
-                    .font(.headline)
-                Spacer()
-                if prof.is_offered == 1 {
-                    OfferedComView()
-                } else {
-                    Text("Not Offered")
-                        .font(.caption2)
-                        .bold()
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .foregroundStyle(.secondary)
-                        .background(.quaternary, in: Capsule())
-                }
-            }
-
-            ScoreChip(title: "Overall", value: prof.result)
-
-            HStack {
-                ScoreChip(title: "Grade", value: prof.grade)
-                Spacer()
-                ScoreChip(title: "Easy", value: prof.hard)
-                Spacer()
-                ScoreChip(title: "Outcome", value: prof.reward)
-                Spacer()
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Comments")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Text(String(prof.comments))
+        GlassCard(padding: 16) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text(prof.course_id)
                         .font(.headline)
-                        .bold()
+                    Spacer()
+                    if prof.is_offered == 1 {
+                        OfferedComView()
+                    } else {
+                        GlassTag(text: "Not Offered", tint: .gray)
+                    }
+                }
+
+                ScoreChip(title: "Overall", value: prof.result)
+
+                Divider().opacity(0.4)
+
+                HStack {
+                    ScoreChip(title: "Grade", value: prof.grade)
+                    Spacer()
+                    ScoreChip(title: "Easy", value: prof.hard)
+                    Spacer()
+                    ScoreChip(title: "Outcome", value: prof.reward)
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Comments")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text(String(prof.comments))
+                            .font(.headline)
+                            .bold()
+                    }
                 }
             }
         }
-        .padding(16)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 }

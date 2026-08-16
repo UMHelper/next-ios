@@ -2,55 +2,106 @@
 //  AboutView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  關於页：数据来源、社区链接与开源信息。
+//  关于页：品牌信息、社区与开源链接、数据来源（玻璃卡片）。
 //
 
 import SwiftUI
 
 struct AboutView: View {
     var body: some View {
-        List {
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("What2REG @UM")
-                        .font(.title)
-                        .bold()
-                    Text("Course review platform for University of Macau")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // 品牌卡
+                GlassCard(cornerRadius: 26, padding: 20) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("What2REG @UM")
+                            .font(.system(size: 30, weight: .heavy, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.blue, .indigo, .cyan],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                        Text("Course review platform for University of Macau")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .padding(.vertical, 8)
-            }
 
-            Section("Community") {
-                Link(destination: URL(string: "https://docs.google.com/forms/d/1_HrH0jJ9Fyxu_dmW1xGsn9Hq1ZtN9nFG-Jangj_BNVk/")!) {
-                    Label("Report and Feedback", systemImage: "quote.bubble.fill")
-                }
-                Link(destination: URL(string: "https://github.com/UMHelper/Feedback-and-Join-Us/blob/master/Join.md")!) {
-                    Label("UMHelper Dev Group", systemImage: "person.3.fill")
-                }
-                Link(destination: URL(string: "https://github.com/UMHelper/next-web")!) {
-                    Label("What2Reg Ver. \"Next\" (GitHub)", systemImage: "chevron.left.forwardslash.chevron.right")
-                }
-                Link(destination: URL(string: "https://github.com/UMHelper/next-ios")!) {
-                    Label("next-ios (GitHub)", systemImage: "swift")
-                }
-            }
+                SectionHeader(title: "Community")
+                linkCard(
+                    icon: "quote.bubble.fill",
+                    title: "Report and Feedback",
+                    url: "https://docs.google.com/forms/d/1_HrH0jJ9Fyxu_dmW1xGsn9Hq1ZtN9nFG-Jangj_BNVk/"
+                )
+                linkCard(
+                    icon: "person.3.fill",
+                    title: "UMHelper Dev Group",
+                    url: "https://github.com/UMHelper/Feedback-and-Join-Us/blob/master/Join.md"
+                )
+                linkCard(
+                    icon: "chevron.left.forwardslash.chevron.right",
+                    title: "What2Reg Ver. \"Next\" (GitHub)",
+                    url: "https://github.com/UMHelper/next-web"
+                )
+                linkCard(
+                    icon: "swift",
+                    title: "next-ios (GitHub)",
+                    url: "https://github.com/UMHelper/next-ios"
+                )
 
-            Section("Data") {
-                LabeledContent("Data Source", value: "reg.um.edu.mo")
-                LabeledContent("Web", value: "umeh.top")
-                LabeledContent("API", value: APIConfig.baseURL)
-            }
+                SectionHeader(title: "Data")
+                    .padding(.top, 4)
+                GlassCard(padding: 16) {
+                    VStack(spacing: 10) {
+                        dataRow("Data Source", "reg.um.edu.mo")
+                        Divider().opacity(0.4)
+                        dataRow("Web", "umeh.top")
+                        Divider().opacity(0.4)
+                        dataRow("API", APIConfig.baseURL)
+                    }
+                }
 
-            Section {
                 Text("Reviews are submitted anonymously by users and are for reference only.")
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
         .navigationTitle("About")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func linkCard(icon: String, title: String, url: String) -> some View {
+        Link(destination: URL(string: url)!) {
+            GlassCard(padding: 14) {
+                HStack(spacing: 14) {
+                    Image(systemName: icon)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(.blue)
+                        .frame(width: 40, height: 40)
+                        .glassEffect(.regular.interactive(), in: .circle)
+                    Text(title)
+                        .font(.subheadline.weight(.semibold))
+                    Spacer(minLength: 0)
+                    Image(systemName: "arrow.up.right")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func dataRow(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title).font(.footnote).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).font(.footnote.weight(.semibold)).lineLimit(1)
+        }
     }
 }

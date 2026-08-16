@@ -2,54 +2,53 @@
 //  SearchResultView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2025/9/19.
-//  搜索结果页：课程模式（卡片 + 过滤条件）/ 讲师模式（折叠分组）。
-//  对应 Web 端 /search/course/[code] 与 /search/instructor/[...name]。
+//  搜索结果页：课程模式（晶边玻璃卡片 + 过滤胶囊）/ 讲师模式（玻璃折叠分组）。
 //
 
 import SwiftUI
 
-// MARK: - 课程结果卡片（与 Web 端 CourseCard 对应）
+// MARK: - 课程结果卡片
 
 struct CourseRow: View {
     let course: FuzzyCourse
-    let loadingCourseCode: String?
 
     var body: some View {
         NavigationLink(value: Route.course(course.New_code)) {
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(course.New_code)
-                        .font(.headline)
-                    Spacer()
-                    if course.Is_Offered == 1 {
-                        OfferedComView()
+            GlassCard(padding: 14) {
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text(course.New_code)
+                            .font(.headline)
+                        Spacer()
+                        if course.Is_Offered == 1 {
+                            GlassTag(text: "Offered", tint: .green)
+                        }
                     }
-                }
-                if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
-                    Text(titleEng)
-                        .font(.subheadline)
-                }
-                if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
-                    Text(titleChi)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                    if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
+                        Text(titleEng)
+                            .font(.subheadline)
+                            .lineLimit(2)
+                    }
+                    if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
+                        Text(titleChi)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
 
-                HStack {
-                    infoColumn("Credits", course.Credits ?? "N/A")
-                    Spacer()
-                    infoColumn("Dept.", course.Offering_Department ?? "N/A")
-                    Spacer()
-                    infoColumn("Faculty", course.Offering_Unit ?? "N/A")
-                    Spacer()
-                    infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                    HStack {
+                        infoColumn("Credits", course.Credits ?? "N/A")
+                        Spacer()
+                        infoColumn("Dept.", course.Offering_Department ?? "N/A")
+                        Spacer()
+                        infoColumn("Faculty", course.Offering_Unit ?? "N/A")
+                        Spacer()
+                        infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                    }
+                    .font(.footnote)
+                    .padding(.top, 2)
                 }
-                .font(.footnote)
             }
-            .padding()
-            .padding(.horizontal, 8)
-            .glassEffect(in: .rect(cornerRadius: 16.0))
         }
         .buttonStyle(.plain)
     }
@@ -57,34 +56,39 @@ struct CourseRow: View {
     private func infoColumn(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
-                .foregroundStyle(.secondary)
                 .font(.caption2)
+                .foregroundStyle(.tertiary)
             Text(value)
+                .lineLimit(1)
         }
     }
 }
 
-// MARK: - 讲师结果分组（与 Web 端 InstructorSearchPage 的 Accordion 对应）
+// MARK: - 讲师结果分组
 
 struct ProfRow: View {
     let prof: FuzzySearchProf
 
     var body: some View {
-        DisclosureGroup {
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(prof.course_list) { course in
-                    CourseRow(course: course, loadingCourseCode: nil)
+        GlassCard(padding: 14) {
+            DisclosureGroup {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(prof.course_list) { course in
+                        CourseRow(course: course)
+                    }
+                }
+                .padding(.top, 10)
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: "person.crop.circle.fill")
+                        .font(.title3)
+                        .foregroundStyle(.blue)
+                    Text(prof.prof_name)
+                        .font(.headline)
                 }
             }
-            .padding(.top, 8)
-        } label: {
-            Text(prof.prof_name)
-                .font(.headline)
-                .padding(.vertical, 6)
+            .tint(.primary)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 4)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 }
 
@@ -101,8 +105,6 @@ struct SearchResultView: View {
     @State private var profs: [FuzzySearchProf] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
-
-    // 课程过滤条件（与 Web 端 CourseFilter 对应）
     @State private var filters: [String: String] = [:]
 
     init(initialMode: String, initialKeyword: String) {
@@ -144,7 +146,6 @@ struct SearchResultView: View {
         }
     }
 
-    /// 各过滤维度可选项（与 Web 端 courseKeysToCount 对应）
     private static let filterKeys: [(String, String)] = [
         ("Offering_Unit", "Faculty"),
         ("Offering_Department", "Dept."),
@@ -172,66 +173,34 @@ struct SearchResultView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack {
-                if isLoading {
-                    ProgressView("Searching...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if let errorMessage {
-                    ContentUnavailableView {
-                        Label("Search Failed", systemImage: "wifi.exclamationmark")
-                    } description: {
-                        Text(errorMessage)
-                    }
+        Group {
+            if isLoading {
+                ProgressView("Searching...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if currentMode == "course" && courses.isEmpty && !isLoading {
-                    ContentUnavailableView {
-                        Label("No result found :(", systemImage: "magnifyingglass")
-                    } description: {
-                        Text("No matching courses found")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else if currentMode == "prof" && profs.isEmpty && !isLoading {
-                    ContentUnavailableView {
-                        Label("No result found :(", systemImage: "magnifyingglass")
-                    } description: {
-                        Text("No matching instructors found")
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    resultList
+            } else if let errorMessage {
+                ContentUnavailableView {
+                    Label("Search Failed", systemImage: "wifi.exclamationmark")
+                } description: {
+                    Text(errorMessage)
                 }
-
-                // 悬浮搜索条
-                VStack {
-                    Spacer()
-                    LinearGradient(
-                        colors: [
-                            Color(uiColor: .systemBackground).opacity(0),
-                            Color(uiColor: .systemBackground),
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .frame(height: 40)
-                    .allowsHitTesting(false)
-
-                    SearchComView(
-                        searchKeyword: $searchKeyword,
-                        currentMode: $currentMode,
-                        onSubmit: {
-                            Task { await performSearch() }
-                        }
-                    )
-                    .padding(.bottom, 12)
+            } else if currentMode == "course" && courses.isEmpty {
+                ContentUnavailableView {
+                    Label("No result found", systemImage: "magnifyingglass")
+                } description: {
+                    Text("No matching courses found")
                 }
+            } else if currentMode == "prof" && profs.isEmpty {
+                ContentUnavailableView {
+                    Label("No result found", systemImage: "magnifyingglass")
+                } description: {
+                    Text("No matching instructors found")
+                }
+            } else {
+                resultList
             }
         }
         .navigationTitle("Search Results")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
         .task {
             if courses.isEmpty && profs.isEmpty {
                 await performSearch()
@@ -245,14 +214,15 @@ struct SearchResultView: View {
         }
     }
 
-    @ViewBuilder
     private var resultList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 if currentMode == "course" {
                     filterBar
+                }
+                if currentMode == "course" {
                     ForEach(filteredCourses) { course in
-                        CourseRow(course: course, loadingCourseCode: nil)
+                        CourseRow(course: course)
                     }
                 } else {
                     ForEach(profs, id: \.prof_name) { prof in
@@ -260,12 +230,13 @@ struct SearchResultView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 140)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
     }
 
-    /// 课程过滤条件栏（横向滚动 Menu）
+    /// 玻璃过滤胶囊
     private var filterBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
@@ -287,17 +258,21 @@ struct SearchResultView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(current == "All" ? label : "\(label): \(current)")
-                                .font(.caption)
+                                .font(.caption.weight(.medium))
                             Image(systemName: "chevron.up.chevron.down")
-                                .font(.caption2)
+                                .font(.system(size: 8, weight: .bold))
                         }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 6)
-                        .background(
-                            current == "All" ? Color.clear : Color.accentColor.opacity(0.2),
-                            in: Capsule()
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .glassEffect(.regular.interactive())
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    current == "All" ? Color.secondary.opacity(0.25) : Color.blue.opacity(0.5),
+                                    lineWidth: 1
+                                )
                         )
-                        .overlay(Capsule().stroke(.separator.opacity(0.4)))
                     }
                 }
             }

@@ -2,9 +2,7 @@
 //  SubmitReviewView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  提交评价表单：7 项评分 + 文字评价。
-//  对应 Web 端 /submit/[code]/[prof] 页（Post /api/comment）。
+//  提交评价表单：7 项评分 + 文字评价，玻璃分区卡片。
 //
 
 import SwiftUI
@@ -59,116 +57,136 @@ struct SubmitReviewView: View {
     private static let rewardLabels = ["None", "Waste of time", "Not useful", "Not quite", "Useful", "Very useful"]
 
     var body: some View {
-        Form {
-            Section("Commenting on") {
-                LabeledContent("Course Code", value: code)
-                LabeledContent("Instructor", value: prof)
-            }
-
-            // 出席檢查 Attendance
-            Section("Attendance") {
-                Picker("Attendance", selection: $attendance) {
-                    Text("Always").tag(1.0)
-                    Text("Sometimes").tag(3.0)
-                    Text("Never").tag(5.0)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 16) {
+                // 课程/讲师信息
+                GlassCard(padding: 16) {
+                    VStack(spacing: 10) {
+                        infoRow("Course Code", code)
+                        Divider().opacity(0.4)
+                        infoRow("Instructor", prof)
+                    }
                 }
-                .pickerStyle(.segmented)
-            }
 
-            // 演示頻次 Presentations
-            Section("Presentations") {
-                Picker("Presentations", selection: $pre) {
-                    Text("Multiple").tag(1.0)
-                    Text("Once").tag(3.0)
-                    Text("Never").tag(5.0)
+                // 出席检查
+                sectionCard("Attendance") {
+                    Picker("Attendance", selection: $attendance) {
+                        Text("Always").tag(1.0)
+                        Text("Sometimes").tag(3.0)
+                        Text("Never").tag(5.0)
+                    }
+                    .pickerStyle(.segmented)
                 }
-                .pickerStyle(.segmented)
-            }
 
-            // 总体推荐 Overall Recommend
-            Section {
-                ratingRow(
-                    title: "Overall Recommend",
-                    value: $recommend,
-                    labels: Self.recommendLabels
-                )
-            }
+                // 演示频次
+                sectionCard("Presentations") {
+                    Picker("Presentations", selection: $pre) {
+                        Text("Multiple").tag(1.0)
+                        Text("Once").tag(3.0)
+                        Text("Never").tag(5.0)
+                    }
+                    .pickerStyle(.segmented)
+                }
 
-            // 成绩 Grades Obtained
-            Section {
-                ratingRow(
-                    title: "Grades Obtained",
-                    value: $grade,
-                    labels: Self.gradeLabels
-                )
-                ratingRow(
-                    title: "Workload",
-                    value: $assignment,
-                    labels: Self.assignmentLabels
-                )
-                ratingRow(
-                    title: "Difficulty",
-                    value: $hard,
-                    labels: Self.hardLabels
-                )
-                ratingRow(
-                    title: "Usefulness",
-                    value: $reward,
-                    labels: Self.rewardLabels
-                )
-            }
-
-            // 评论内容（10–2000 字，与 Web 端 zod 校验一致）
-            Section {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Comment on the instructor of this course")
-                        .font(.subheadline)
-                        .bold()
-
-                    Text("Does the course cover useful topics and content?\nIs the assessment reasonably arranged (assignments, exams, etc.)?\nDid the teaching of the instructor make your learning more passionate?")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
-                    TextEditor(text: $content)
-                        .frame(minHeight: 140)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(.separator.opacity(0.5))
+                // 星级评分组
+                sectionCard("Ratings") {
+                    VStack(spacing: 18) {
+                        ratingRow(
+                            title: "Overall Recommend",
+                            value: $recommend,
+                            labels: Self.recommendLabels
                         )
-
-                    HStack {
-                        Text("\(content.count) / 2000")
-                            .font(.caption2)
-                            .foregroundStyle(content.count >= 10 ? Color.secondary : Color.red)
-                        Spacer()
-                        Text("You comment will be posted anonymously, but please make sure to adhere to our community guidelines.")
-                            .font(.caption2)
-                            .foregroundStyle(.tertiary)
+                        ratingRow(
+                            title: "Grades Obtained",
+                            value: $grade,
+                            labels: Self.gradeLabels
+                        )
+                        ratingRow(
+                            title: "Workload",
+                            value: $assignment,
+                            labels: Self.assignmentLabels
+                        )
+                        ratingRow(
+                            title: "Difficulty",
+                            value: $hard,
+                            labels: Self.hardLabels
+                        )
+                        ratingRow(
+                            title: "Usefulness",
+                            value: $reward,
+                            labels: Self.rewardLabels
+                        )
                     }
                 }
-            }
 
-            // 提交按钮
-            Section {
-                Button {
-                    submit()
-                } label: {
-                    HStack {
-                        if isSubmitting {
-                            ProgressView()
-                                .controlSize(.small)
-                        } else {
-                            Image(systemName: "icloud.and.arrow.up")
+                // 评论内容
+                sectionCard("Comment") {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text("Does the course cover useful topics and content?\nIs the assessment reasonably arranged (assignments, exams, etc.)?\nDid the teaching of the instructor make your learning more passionate?")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+
+                        TextEditor(text: $content)
+                            .frame(minHeight: 140)
+                            .scrollContentBackground(.hidden)
+                            .padding(8)
+                            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 14)
+                                    .strokeBorder(.separator.opacity(0.5), lineWidth: 1)
+                            )
+
+                        HStack {
+                            Text("\(content.count) / 2000")
+                                .font(.caption2)
+                                .foregroundStyle(content.count >= 10 ? Color.secondary : Color.red)
+                            Spacer()
+                            Text("Posted anonymously · please follow community guidelines")
+                                .font(.caption2)
+                                .foregroundStyle(.tertiary)
                         }
-                        Text(isSubmitting ? "Submitting..." : "Submit")
                     }
-                    .frame(maxWidth: .infinity)
                 }
-                .disabled(isSubmitting || !isFormValid)
+
+                // 提交按钮
+                GlassActionButton(
+                    title: isSubmitting ? "Submitting..." : "Submit",
+                    systemImage: isSubmitting ? nil : "icloud.and.arrow.up",
+                    tint: .blue,
+                    isLoading: isSubmitting,
+                    disabled: !isFormValid
+                ) {
+                    submit()
+                }
+
+                Text("New comments are usually published in 3 minutes.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .frame(maxWidth: .infinity)
             }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
         .navigationTitle("Submit Review")
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func sectionCard(_ title: String, @ViewBuilder content: () -> some View) -> some View {
+        GlassCard(padding: 16) {
+            VStack(alignment: .leading, spacing: 12) {
+                SectionHeader(title: title)
+                content()
+            }
+        }
+    }
+
+    private func infoRow(_ title: String, _ value: String) -> some View {
+        HStack {
+            Text(title).font(.footnote).foregroundStyle(.secondary)
+            Spacer()
+            Text(value).font(.subheadline.weight(.semibold))
+        }
     }
 
     private var isFormValid: Bool {
@@ -183,13 +201,12 @@ struct SubmitReviewView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
-                .font(.subheadline)
+                .font(.subheadline.weight(.semibold))
             StarRatingInput(value: value)
             Text(labels[value.wrappedValue])
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
-        .padding(.vertical, 4)
     }
 
     private func submit() {

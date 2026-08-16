@@ -2,9 +2,7 @@
 //  CourseDetailView.swift
 //  What2REG@UM
 //
-//  Created by Box Zhang on 2026/8/16.
-//  课程详情页：课程信息头部 + 教授评分卡片列表。
-//  对应 Web 端 /course/[code] 页（ProfCard 卡片列表）。
+//  课程详情页：晶边玻璃课程头部 + 教授评分卡片列表。
 //
 
 import SwiftUI
@@ -34,9 +32,6 @@ struct CourseDetailView: View {
         }
         .navigationTitle(code)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
         .task {
             guard data == nil else { return }
             await load()
@@ -56,16 +51,22 @@ struct CourseDetailView: View {
 
     private func content(_ data: CourseInfoWithProfList) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 14) {
                 courseHeader(data)
 
                 if data.profList.isEmpty {
-                    Label("No Instructor Found", systemImage: "frown")
+                    GlassCard {
+                        HStack(spacing: 10) {
+                            Image(systemName: "frown")
+                            Text("No Instructor Found")
+                        }
                         .font(.headline)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 40)
+                    }
                 } else {
+                    SectionHeader(title: "Instructors", subtitle: "\(data.profList.count) professor\(data.profList.count == 1 ? "" : "s")")
+
                     ForEach(data.profList) { prof in
                         NavigationLink(value: Route.review(code, prof: prof.prof_id)) {
                             ProfListItemView(prof: prof)
@@ -74,28 +75,36 @@ struct CourseDetailView: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 40)
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 20)
         }
     }
 
-    // MARK: 课程信息头部（与 Web 端蓝色渐变头部对应）
+    // MARK: 课程信息头部
     private func courseHeader(_ data: CourseInfoWithProfList) -> some View {
         let course = data.course
-        return GlassEffectContainer {
-            VStack(alignment: .leading, spacing: 10) {
+        return GlassCard(cornerRadius: 26, padding: 18) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 5) {
                         Text(course.courseCode)
-                            .font(.title)
-                            .bold()
+                            .font(.system(.title, design: .rounded, weight: .bold))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.blue, .indigo],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
 
                         Text(course.courseTitle)
                             .font(.headline)
+                            .lineLimit(2)
 
                         if let level = course.offeringProgLevel,
                            let year = course.suggestedYearOfStudy {
-                            Text("\(level) Course, Year \(year)")
+                            Text("\(level) Course · Year \(year)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -108,7 +117,8 @@ struct CourseDetailView: View {
                     }
                 }
 
-                // 关键字段网格（Credits/Dept/Faculty/Language/Grading/Type/Duration）
+                Divider().opacity(0.4)
+
                 HStack {
                     fieldColumn("Credits", course.credits ?? "N/A")
                     Spacer()
@@ -129,15 +139,21 @@ struct CourseDetailView: View {
                 }
                 .font(.footnote)
 
-                // 课程描述 / ILO 弹窗入口（与 Web 端 Dialog 对应）
-                HStack(spacing: 16) {
+                HStack(spacing: 14) {
                     Button {
                         showCourseDetail = true
                     } label: {
-                        Label("Course Description", systemImage: "arrow.up.right.square")
-                            .font(.caption)
+                        Label("Course Description", systemImage: "doc.text.magnifyingglass")
+                            .font(.caption.weight(.medium))
+                            .foregroundStyle(.blue)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .glassEffect(.regular.interactive())
+                            .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
+
+                    Spacer()
 
                     Text("Data Source: reg.um.edu.mo")
                         .font(.caption2)
@@ -145,9 +161,7 @@ struct CourseDetailView: View {
                         .foregroundStyle(.tertiary)
                 }
             }
-            .padding(16)
         }
-        .clipShape(RoundedRectangle(cornerRadius: 20))
         .sheet(isPresented: $showCourseDetail) {
             courseDetailSheet(course)
         }
@@ -157,88 +171,93 @@ struct CourseDetailView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.caption2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(.tertiary)
             Text(value)
+                .lineLimit(1)
         }
     }
 
-    // MARK: 课程描述 / ILO 详情页（与 Web 端 Dialog 内容对应）
+    // MARK: 课程描述 / ILO 弹层
     private func courseDetailSheet(_ course: Course) -> some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                Text("Course Detail")
-                    .font(.title3)
-                    .bold()
+        ZStack {
+            LiquidBackground()
+            ScrollView {
+                VStack(alignment: .leading, spacing: 18) {
+                    Text("Course Detail")
+                        .font(.title2.weight(.bold))
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Course Description")
-                        .bold()
-                    Text(course.courseDescription?.isEmpty == false ? course.courseDescription! : "No Course Description")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Course Description").bold()
+                            Text(course.courseDescription?.isEmpty == false ? course.courseDescription! : "No Course Description")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
 
-                    Text("Intended Learning Outcomes")
-                        .bold()
-                        .padding(.top, 8)
-                    Text(course.ilo?.isEmpty == false ? course.ilo! : "No Intended Learning Outcomes")
-                        .font(.body)
-                        .foregroundStyle(.secondary)
+                    GlassCard {
+                        VStack(alignment: .leading, spacing: 12) {
+                            Text("Intended Learning Outcomes").bold()
+                            Text(course.ilo?.isEmpty == false ? course.ilo! : "No Intended Learning Outcomes")
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Text("Data Source: reg.um.edu.mo")
+                        .font(.caption2)
+                        .italic()
+                        .foregroundStyle(.tertiary)
                 }
-
-                Text("Data Source: reg.um.edu.mo")
-                    .font(.caption2)
-                    .italic()
-                    .foregroundStyle(.tertiary)
+                .padding(24)
             }
-            .padding(28)
         }
-        .frame(maxHeight: .infinity, alignment: .top)
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+        .presentationBackground(.clear)
     }
 }
 
-// MARK: - 教授评分卡片（与 Web 端 ProfCard 对应）
+// MARK: - 教授评分卡片
 
 struct ProfListItemView: View {
     let prof: Prof
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // MARK: Prof name
-            HStack {
-                Text(prof.prof_id)
-                    .font(.headline)
-                    .lineLimit(2)
-                Spacer()
-                if prof.is_offered == 1 {
-                    OfferedComView()
-                }
-            }
-
-            // MARK: Overall
-            ScoreChip(title: "Overall", value: prof.result)
-
-            // MARK: Detail
-            HStack {
-                ScoreChip(title: "Grade", value: prof.grade)
-                Spacer()
-                ScoreChip(title: "Difficulty", value: prof.hard)
-                Spacer()
-                ScoreChip(title: "Useful", value: prof.reward)
-                Spacer()
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Comments")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Text(String(prof.comments))
+        GlassCard(padding: 16) {
+            VStack(alignment: .leading, spacing: 14) {
+                HStack {
+                    Text(prof.prof_id)
                         .font(.headline)
-                        .bold()
+                        .lineLimit(2)
+                    Spacer()
+                    if prof.is_offered == 1 {
+                        OfferedComView()
+                    }
+                }
+
+                ScoreChip(title: "Overall", value: prof.result)
+
+                Divider().opacity(0.4)
+
+                HStack {
+                    ScoreChip(title: "Grade", value: prof.grade)
+                    Spacer()
+                    ScoreChip(title: "Difficulty", value: prof.hard)
+                    Spacer()
+                    ScoreChip(title: "Useful", value: prof.reward)
+                    Spacer()
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Comments")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                        Text(String(prof.comments))
+                            .font(.headline)
+                            .bold()
+                    }
                 }
             }
         }
-        .padding(16)
-        .glassEffect(in: .rect(cornerRadius: 16.0))
     }
 }
 
