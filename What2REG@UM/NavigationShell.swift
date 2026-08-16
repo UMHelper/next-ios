@@ -2,7 +2,8 @@
 //  NavigationShell.swift
 //  What2REG@UM
 //
-//  导航外壳：左上角菜单按钮展开的侧边栏 + 全页面常驻的底部液态玻璃搜索栏。
+//  导航外壳：左上角菜单按钮展开的侧边栏 + 全页面常驻的底部液态玻璃搜索栏
+//  （搜索栏样式参考 init 提交 01caf8d 的 SearchComView）。
 //
 
 import SwiftUI
@@ -12,7 +13,6 @@ import SwiftUI
 enum SidebarDestination: String, CaseIterable, Identifiable {
     case home
     case search
-    case timetable
     case catalog
     case about
 
@@ -22,7 +22,6 @@ enum SidebarDestination: String, CaseIterable, Identifiable {
         switch self {
         case .home: return "Home"
         case .search: return "Search"
-        case .timetable: return "Timetable"
         case .catalog: return "Catalog"
         case .about: return "About"
         }
@@ -32,123 +31,129 @@ enum SidebarDestination: String, CaseIterable, Identifiable {
         switch self {
         case .home: return "house.fill"
         case .search: return "magnifyingglass"
-        case .timetable: return "calendar"
         case .catalog: return "books.vertical.fill"
         case .about: return "info.circle.fill"
         }
     }
 }
 
-// MARK: - 侧边栏面板
+// MARK: - 侧边栏面板（不透明毛玻璃底）
 
 struct SidebarMenu: View {
     @Binding var isOpen: Bool
     @Binding var selection: SidebarDestination
     @Binding var theme: AppTheme
 
+    private var panelShape: UnevenRoundedRectangle {
+        UnevenRoundedRectangle(
+            topLeadingRadius: 0,
+            bottomLeadingRadius: 0,
+            bottomTrailingRadius: 34,
+            topTrailingRadius: 34,
+            style: .continuous
+        )
+    }
+
     var body: some View {
         ZStack(alignment: .leading) {
             if isOpen {
-                // 遮罩
-                Color.black.opacity(0.30)
+                // 遮罩(压暗 + 轻微模糊,避免面板显得透明)
+                Color.black.opacity(0.42)
                     .ignoresSafeArea()
                     .transition(.opacity)
                     .onTapGesture {
                         withAnimation(.spring(duration: 0.35)) { isOpen = false }
                     }
 
-                // 玻璃面板
-                GlassEffectContainer {
-                    VStack(alignment: .leading, spacing: 6) {
-                        // 头部品牌
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("What2REG @UM")
-                                .font(.title3.weight(.bold))
-                            Text("Course reviews for University of Macau")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.horizontal, 18)
-                        .padding(.top, 24)
-                        .padding(.bottom, 14)
-
-                        Divider().opacity(0.4).padding(.horizontal, 14)
-
-                        // 菜单项
-                        ForEach(SidebarDestination.allCases) { item in
-                            Button {
-                                withAnimation(.spring(duration: 0.35)) {
-                                    selection = item
-                                    isOpen = false
-                                }
-                            } label: {
-                                HStack(spacing: 12) {
-                                    Image(systemName: item.systemImage)
-                                        .font(.system(size: 15, weight: .semibold))
-                                        .foregroundStyle(selection == item ? .white : .primary)
-                                        .frame(width: 34, height: 34)
-                                        .background(
-                                            selection == item ? Color.blue : Color.clear,
-                                            in: RoundedRectangle(cornerRadius: 10)
-                                        )
-                                        .glassEffect()
-                                    Text(item.title)
-                                        .font(.body.weight(selection == item ? .semibold : .regular))
-                                    Spacer()
-                                    if selection == item {
-                                        Circle()
-                                            .fill(Color.blue)
-                                            .frame(width: 7, height: 7)
-                                    }
-                                }
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 9)
-                                .contentShape(Rectangle())
-                            }
-                            .buttonStyle(.plain)
-                        }
-
-                        Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 6)
-
-                        // 主题切换（System / Light / Dark）
-                        VStack(alignment: .leading, spacing: 8) {
-                            SectionHeader(title: "Appearance")
-                            Picker("Appearance", selection: $theme) {
-                                ForEach(AppTheme.allCases) { mode in
-                                    Text(mode.title).tag(mode)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 10)
-
-                        Spacer(minLength: 0)
-
-                        Text("Data Source: reg.um.edu.mo")
-                            .font(.caption2)
-                            .italic()
-                            .foregroundStyle(.tertiary)
-                            .padding(.horizontal, 18)
-                            .padding(.bottom, 22)
+                // 面板:实心毛玻璃材质 + 玻璃高光 + 晶边
+                VStack(alignment: .leading, spacing: 6) {
+                    // 头部品牌
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("What2REG @UM")
+                            .font(.title3.weight(.bold))
+                        Text("Course reviews for University of Macau")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                     }
-                    .frame(width: 288)
-                    .frame(maxHeight: .infinity, alignment: .topLeading)
+                    .padding(.horizontal, 18)
+                    .padding(.top, 24)
+                    .padding(.bottom, 14)
+
+                    Divider().opacity(0.4).padding(.horizontal, 14)
+
+                    // 菜单项
+                    ForEach(SidebarDestination.allCases) { item in
+                        Button {
+                            withAnimation(.spring(duration: 0.35)) {
+                                selection = item
+                                isOpen = false
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: item.systemImage)
+                                    .font(.system(size: 15, weight: .semibold))
+                                    .foregroundStyle(selection == item ? .white : .primary)
+                                    .frame(width: 34, height: 34)
+                                    .background(
+                                        selection == item ? Color.blue : Color.clear,
+                                        in: RoundedRectangle(cornerRadius: 10)
+                                    )
+                                    .glassEffect()
+                                Text(item.title)
+                                    .font(.body.weight(selection == item ? .semibold : .regular))
+                                Spacer()
+                                if selection == item {
+                                    Circle()
+                                        .fill(Color.blue)
+                                        .frame(width: 7, height: 7)
+                                }
+                            }
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 9)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                    }
+
+                    Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 6)
+
+                    // 主题切换（System / Light / Dark）
+                    VStack(alignment: .leading, spacing: 8) {
+                        SectionHeader(title: "Appearance")
+                        Picker("Appearance", selection: $theme) {
+                            ForEach(AppTheme.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+
+                    Spacer(minLength: 0)
+
+                    Text("Data Source: reg.um.edu.mo")
+                        .font(.caption2)
+                        .italic()
+                        .foregroundStyle(.tertiary)
+                        .padding(.horizontal, 18)
+                        .padding(.bottom, 22)
                 }
-                .clipShape(UnevenRoundedRectangle(topLeadingRadius: 0, bottomLeadingRadius: 0, bottomTrailingRadius: 34, topTrailingRadius: 34, style: .continuous))
-                .overlay(alignment: .trailing) {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [.clear, .blue.opacity(0.25)],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 1)
-                        .padding(.vertical, 24)
+                .frame(width: 288)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
+                .background(.regularMaterial, in: panelShape)
+                .glassEffect(in: panelShape)
+                .overlay {
+                    panelShape.strokeBorder(
+                        LinearGradient(
+                            colors: [.white.opacity(0.5), .white.opacity(0.1), .blue.opacity(0.25)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
                 }
-                .shadow(color: .black.opacity(0.25), radius: 30, x: 8, y: 0)
+                .shadow(color: .black.opacity(0.35), radius: 30, x: 8, y: 0)
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
@@ -156,10 +161,12 @@ struct SidebarMenu: View {
     }
 }
 
-// MARK: - 底部常驻搜索栏（所有页面可见）
+// MARK: - 底部常驻搜索栏（样式与 init 提交 01caf8d 的 SearchComView 一致）
 
 struct BottomSearchBar: View {
     let onSubmit: (String, String) -> Void
+    // 是否在出现时自动聚焦并打开键盘(与原始设计一致,仅首页使用)
+    var autoFocus: Bool = false
 
     @State private var keyword = ""
     @State private var mode = "course"
@@ -169,87 +176,102 @@ struct BottomSearchBar: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                // 搜索输入（液态玻璃胶囊）
-                GlassEffectContainer {
-                    HStack(spacing: 10) {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundStyle(.secondary)
-                            .font(.system(size: 15, weight: .semibold))
-
-                        TextField(
-                            mode == "course" ? "Search courses..." : "Search instructors...",
-                            text: $keyword
-                        )
-                        .textInputAutocapitalization(.characters)
-                        .keyboardType(.asciiCapable)
-                        .autocorrectionDisabled()
-                        .submitLabel(.search)
-                        .focused($isFocused)
-                        .onSubmit { submit() }
-
-                        if !keyword.isEmpty {
-                            Button {
-                                keyword = ""
-                            } label: {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 11)
-                }
-                .glassEffectID("searchField", in: namespace)
-
-                // 模式切换（玻璃 + 匹配几何形变）
-                GlassEffectContainer {
-                    HStack(spacing: 6) {
-                        if mode == "course" {
-                            modeIcon("course", systemName: "books.vertical.fill", isActive: true)
-                            if isExpanded {
-                                modeIcon("prof", systemName: "person.bust", isActive: false)
-                            }
-                        } else {
-                            modeIcon("prof", systemName: "person.bust.fill", isActive: true)
-                            if isExpanded {
-                                modeIcon("course", systemName: "books.vertical", isActive: false)
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 5)
-                    .padding(.vertical, 5)
-                }
-                .clipShape(Capsule())
+        ZStack {
+            VStack {
+                Spacer()
+                // 底部渐隐遮罩(与系统背景同色,深色=黑/浅色=白)
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }),
+                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }).opacity(0),
+                    ]),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .ignoresSafeArea()
+                .frame(height: 64)
+                .allowsHitTesting(false)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 6)
+
+            VStack {
+                Spacer()
+                HStack(spacing: 0) {
+
+                    // 搜索输入(玻璃容器 + 内部 glassEffect,与原始设计一致)
+                    GlassEffectContainer {
+                        HStack(spacing: 10) {
+                            Image(systemName: "magnifyingglass")
+                                .foregroundStyle(.secondary)
+                                .bold()
+
+                            TextField(mode == "course" ? "Search Course" : "Search Prof", text: $keyword)
+                                .padding()
+                                .focused($isFocused)
+                                .defaultFocus($isFocused, autoFocus)
+                                .offset(x: -16.0, y: 0.0)
+                                .textInputAutocapitalization(.characters)
+                                .keyboardType(.asciiCapable)
+                                .autocorrectionDisabled()
+                                .submitLabel(.search)
+                                .onSubmit { submit() }
+                                .onChange(of: keyword) {
+                                    withAnimation {
+                                        isExpanded = false
+                                    }
+                                }
+
+                            if !keyword.isEmpty {
+                                Button {
+                                    keyword = ""
+                                } label: {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.caption)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                        .padding(.horizontal)
+                        .glassEffect()
+                    }
+
+                    // 模式切换(52×52 玻璃图标 + 匹配几何形变,与原始设计一致)
+                    GlassEffectContainer {
+                        HStack {
+                            if mode == "course" {
+                                modeIcon("course", systemName: "books.vertical.fill", isActive: true)
+                                if isExpanded {
+                                    modeIcon("prof", systemName: "person.bust", isActive: false)
+                                }
+                            } else {
+                                modeIcon("prof", systemName: "person.bust.fill", isActive: true)
+                                if isExpanded {
+                                    modeIcon("course", systemName: "books.vertical", isActive: false)
+                                }
+                            }
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical)
+                .onAppear {
+                    keyword = ""
+                    if autoFocus {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                            isFocused = true
+                        }
+                    }
+                }
+            }
         }
-        // 与背景融合的淡入遮罩（浅色/深色自适应）
-        .background(
-            LinearGradient(
-                colors: [
-                    (scheme == .dark ? Color(red: 0.03, green: 0.06, blue: 0.14) : Color(red: 0.90, green: 0.94, blue: 1.0)).opacity(0),
-                    (scheme == .dark ? Color(red: 0.03, green: 0.06, blue: 0.14) : Color(red: 0.90, green: 0.94, blue: 1.0)).opacity(0.82),
-                    (scheme == .dark ? Color(red: 0.03, green: 0.06, blue: 0.14) : Color(red: 0.90, green: 0.94, blue: 1.0)),
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea(edges: .bottom)
-        )
     }
 
     private func modeIcon(_ mode: String, systemName: String, isActive: Bool) -> some View {
         Image(systemName: systemName)
-            .font(.system(size: 15, weight: .semibold))
+            .frame(width: 52.0, height: 52.0)
+            .bold()
             .foregroundStyle(isActive ? .primary : .secondary)
-            .frame(width: 38, height: 38)
-            .glassEffect(isActive ? .regular : .regular)
+            .glassEffect()
             .glassEffectID(mode, in: namespace)
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {

@@ -591,16 +591,6 @@ struct TimetableSheet: View {
                     }
                     .font(.caption)
                 }
-
-                GlassActionButton(
-                    title: "Add to Schedule Cart",
-                    systemImage: "cart.badge.plus",
-                    tint: .blue,
-                    disabled: TimetableCartStore.shared.contains(section: timetable.section, code: code)
-                ) {
-                    TimetableCartStore.shared.add(timetable, code: code, prof: prof)
-                    ToastCenter.shared.show("Added to timetable")
-                }
             }
         }
     }

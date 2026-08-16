@@ -10,6 +10,9 @@
 - 语言：Swift 5 + Swift 6 并发（`SWIFT_APPROACHABLE_CONCURRENCY`、默认 MainActor 隔离）
 - UI：SwiftUI + iOS 26 Liquid Glass（`.glassEffect()` / `GlassEffectContainer` / `.glassEffectID(_:in:)`、
   `TabView(.sidebarAdaptable)` 液态玻璃标签栏、`Gauge` 仪表盘、`ViewThatFits`）
+- 导航：无标签栏设计 —— 左上角菜单按钮打开玻璃侧边栏；底部常驻液态玻璃搜索栏（样式参考 init 提交 01caf8d 的 SearchComView）
+- 首页：极简设计（居中打字机标题 + 底部搜索栏，与 init 提交 01caf8d 一致）
+- 课程表（Timetable）功能暂缓上架，已从侧边栏移除；评价页时间表弹窗仅展示上课时间地点
 - UI 文案：纯英文（不做国际化；中文仅保留在代码注释与文档中，课程中文名等来自服务端数据）
 - 数据：统一走 next-web 新增的只读 JSON API（详见 [next-web/docs/ios-api-research.md](../next-web/docs/ios-api-research.md)）
 
@@ -23,7 +26,6 @@
 | `CourseDetailView` 课程详情 | `/course/[code]` | 课程头部（代码/标题/学分/学院/系/语言/评分制/类型/时长）、课程描述与 ILO 弹窗、教授评分卡片列表 |
 | `ReviewView` 评价页 | `/reviews/[code]/[...prof]` | 教授评分仪表（總體/成績/難度/實用性）、评论分页（20 条/页）、表情投票（👍👎🤣💩❤️️）、回复（5–250 字）、时间表弹窗、管理员通知 |
 | `SubmitReviewView` 提交评价 | `/submit/[code]/[prof]` | 7 项评分（出席/演示 1-3-5 分段，推荐/成绩/工作量/难度/实用性 1–5 星）+ 文字评价（10–2000 字） |
-| `TimetableView` 課程表 | `/timetable` | 课程表购物车（UserDefaults 持久化）+ MON–FRI 8:00–20:00 周历 |
 | `CatalogView` 目錄 | `/catalog/[...departments]` | 学院/系/GE 分类（GEGA/GESB/GEST/GELH）浏览 |
 | `ProfessorView` 教授页 | `/professor/[...name]` | 教授所授课程列表（评分卡片） |
 | `AboutView` 關於 | 首页底部卡片 | 数据来源、社区与开源链接 |
@@ -91,7 +93,6 @@ What2REG@UM/
 ├── CourseDetailView.swift # 课程详情 + 教授列表
 ├── ReviewView.swift       # 评价页(评论/投票/回复/分页/时间表)
 ├── SubmitReviewView.swift # 提交评价表单
-├── TimetableCartStore.swift / TimetableView.swift  # 课程表购物车 + 周历
 ├── CatalogView.swift      # 学院目录
 ├── ProfessorView.swift    # 教授页
 └── AboutView.swift        # 關於页

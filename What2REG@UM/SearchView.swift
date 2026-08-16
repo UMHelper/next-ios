@@ -215,7 +215,6 @@ struct SearchView: View {
                 VStack(spacing: 10) {
                     tipRow("magnifyingglass", "Course mode", "Search by course code or title, e.g. ACCT1000")
                     tipRow("person.fill", "Instructor mode", "Search by instructor name, e.g. CHAN Tai Man")
-                    tipRow("calendar", "Timetable", "Add sections to your cart from course & review pages")
                 }
                 .padding(.bottom, 10)
             }

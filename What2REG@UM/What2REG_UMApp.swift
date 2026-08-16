@@ -57,7 +57,7 @@ struct RootView: View {
                 path = []
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
-                BottomSearchBar { mode, keyword in
+                BottomSearchBar(autoFocus: selection == .home) { mode, keyword in
                     path.append(.search(mode: mode, keyword: keyword))
                 }
             }
@@ -78,7 +78,6 @@ struct RootView: View {
         switch selection {
         case .home: HomeView()
         case .search: SearchView()
-        case .timetable: TimetableView()
         case .catalog: CatalogView()
         case .about: AboutView()
         }
