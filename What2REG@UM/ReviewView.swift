@@ -42,9 +42,11 @@ struct CommentView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // 评论内容(小一号)
+                // 评论内容(柔和深灰 + 行距,避免大段纯黑文字显得沉闷)
                 Text(comment.content)
                     .font(.subheadline)
+                    .foregroundStyle(.primary.opacity(0.78))
+                    .lineSpacing(4)
                     .textSelection(.enabled)
 
                 // 附图
@@ -65,6 +67,8 @@ struct CommentView: View {
                                     .foregroundStyle(.tertiary)
                                 Text(reply.content)
                                     .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                    .lineSpacing(3)
                                     .textSelection(.enabled)
                             }
                             .padding(.leading, 10)
@@ -81,7 +85,7 @@ struct CommentView: View {
     private var reactionRow: some View {
         let visible = Self.allEmojis.filter { emojiCount($0) > 0 }
         if !visible.isEmpty {
-            HStack(spacing: 8) {
+            HStack(spacing: 12) {
                 ForEach(visible, id: \.self) { emoji in
                     HStack(spacing: 3) {
                         Text(emoji)
@@ -90,9 +94,6 @@ struct CommentView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(.quaternary.opacity(0.45), in: Capsule())
                 }
                 Spacer(minLength: 0)
             }
