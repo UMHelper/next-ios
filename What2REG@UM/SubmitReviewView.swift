@@ -127,34 +127,32 @@ struct SubmitReviewView: View {
                                 .foregroundStyle(.tertiary)
                         }
 
-                        // 提交按钮:描边玻璃胶囊 + 上箭头 + 蓝字(主操作,无色块)
+                        Divider().opacity(0.4)
+
+                        // 提交:与页面一致的"详情行"样式按钮(图标 + 文字 + 箭头,无胶囊无描边)
                         Button {
                             submit()
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: 10) {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.caption)
+                                    .foregroundStyle(.blue)
+                                Text(isSubmitting ? "Submitting..." : "Submit Review")
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(.blue)
+                                Spacer()
                                 if isSubmitting {
                                     ProgressView()
                                         .controlSize(.small)
                                         .tint(.blue)
                                 } else {
-                                    Image(systemName: "arrow.up")
-                                        .font(.system(size: 12, weight: .bold))
+                                    Image(systemName: "chevron.right")
+                                        .font(.caption2.weight(.semibold))
+                                        .foregroundStyle(.tertiary)
                                 }
-                                Text(isSubmitting ? "Submitting..." : "Submit Review")
-                                    .font(.footnote.weight(.semibold))
                             }
-                            .foregroundStyle(.blue)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 11)
-                            .glassEffect(.regular.interactive())
-                            .clipShape(Capsule())
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(
-                                        scheme == .dark ? Color.white.opacity(0.25) : Color.white.opacity(0.70),
-                                        lineWidth: 1
-                                    )
-                            )
+                            .padding(.vertical, 8)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .disabled(!isFormValid || isSubmitting)

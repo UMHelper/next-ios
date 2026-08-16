@@ -281,48 +281,40 @@ struct ReviewView: View {
 
                 Divider().opacity(0.4)
 
-                // 操作行:提交评价 / 时间表(纯文字按钮,无多余图标)
-                HStack {
+                // 操作行:提交评价 / 时间表(纯文字 + 箭头,与详情行同构)
+                HStack(spacing: 24) {
                     NavigationLink {
                         SubmitReviewView(code: code, prof: prof)
                     } label: {
-                        HStack(spacing: 6) {
-                            Image(systemName: "arrow.up")
-                                .font(.system(size: 11, weight: .bold))
+                        HStack(spacing: 4) {
                             Text("Submit Review")
                                 .font(.footnote.weight(.semibold))
+                                .foregroundStyle(.blue)
+                            Image(systemName: "chevron.right")
+                                .font(.caption2.weight(.semibold))
+                                .foregroundStyle(.tertiary)
                         }
-                        .foregroundStyle(.blue)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
-                        .glassEffect(.regular.interactive())
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(
-                                    scheme == .dark ? Color.white.opacity(0.25) : Color.white.opacity(0.70),
-                                    lineWidth: 1
-                                )
-                        )
                     }
                     .buttonStyle(.plain)
-
-                    Spacer()
 
                     if !data.timetable.isEmpty {
                         Button {
                             showTimetable = true
                         } label: {
-                            Text("Timetable")
-                                .font(.footnote.weight(.semibold))
-                                .padding(.horizontal, 14)
-                                .padding(.vertical, 7)
-                                .glassEffect(.regular.interactive())
-                                .clipShape(Capsule())
+                            HStack(spacing: 4) {
+                                Text("Timetable")
+                                    .font(.footnote.weight(.semibold))
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                         .buttonStyle(.plain)
                     }
+
+                    Spacer()
                 }
+                .padding(.vertical, 4)
             }
         }
     }
