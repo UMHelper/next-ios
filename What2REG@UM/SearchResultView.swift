@@ -115,7 +115,6 @@ struct SearchResultView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var filters: [String: String] = [:]
-    @State private var directRoute: Route? = nil
 
     init(initialMode: String, initialKeyword: String) {
         self.initialMode = initialMode
@@ -229,9 +228,6 @@ struct SearchResultView: View {
                 .navigationTitle(searchKeyword)
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Route.self) { route in
-            route.destination
-        }
-        .navigationDestination(item: $directRoute) { route in
             route.destination
         }
         .task {
@@ -359,17 +355,9 @@ struct SearchResultView: View {
         errorMessage = nil
         do {
             if currentMode == "course" {
-                let result = try await APIClient.fuzzySearchCourses(keyword: keyword)
-                courses = result
-                if result.count == 1 {
-                    directRoute = .course(result[0].New_code)
-                }
+                courses = try await APIClient.fuzzySearchCourses(keyword: keyword)
             } else {
-                let result = try await APIClient.fuzzySearchProfs(keyword: keyword)
-                profs = result
-                if result.count == 1 {
-                    directRoute = .professor(result[0].prof_name)
-                }
+                profs = try await APIClient.fuzzySearchProfs(keyword: keyword)
             }
         } catch {
             errorMessage = error.localizedDescription
