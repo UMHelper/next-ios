@@ -53,15 +53,10 @@ struct SubmitReviewView: View {
     @Environment(\.dismiss) private var dismiss
 
     private static let recommendLabels = ["None", "Never!", "Better not", "Alright", "Recommend", "Completely"]
-    private static let recommendLabelsZh = ["未選擇", "絕不推薦", "比較不推薦", "無所謂", "比較推薦", "非常推薦"]
     private static let gradeLabels = ["None", "F", "D", "C", "B", "A"]
-    private static let gradeLabelsZh = ["未選擇", "or NP", "or D-/+", "or C-/+", "or B-/+", "or A-/P"]
     private static let assignmentLabels = ["None", "Very heavy", "Busy", "OK", "Light", "No effort"]
-    private static let assignmentLabelsZh = ["未選擇", "非常繁重", "繁重", "普通", "輕鬆", "毫無壓力"]
     private static let hardLabels = ["None", "Very hard", "Hard", "Moderate", "Easy", "Very easy"]
-    private static let hardLabelsZh = ["未選擇", "難以理解", "困難", "適當", "簡單", "非常簡單"]
     private static let rewardLabels = ["None", "Waste of time", "Not useful", "Not quite", "Useful", "Very useful"]
-    private static let rewardLabelsZh = ["未選擇", "完全浪費時間", "意義不大", "有一點意義", "比較實用", "非常實用"]
 
     var body: some View {
         Form {
@@ -71,21 +66,21 @@ struct SubmitReviewView: View {
             }
 
             // 出席檢查 Attendance
-            Section("Attendance 出席檢查") {
+            Section("Attendance") {
                 Picker("Attendance", selection: $attendance) {
-                    Text("Always 經常").tag(1.0)
-                    Text("Sometimes 有時").tag(3.0)
-                    Text("Never 從未").tag(5.0)
+                    Text("Always").tag(1.0)
+                    Text("Sometimes").tag(3.0)
+                    Text("Never").tag(5.0)
                 }
                 .pickerStyle(.segmented)
             }
 
             // 演示頻次 Presentations
-            Section("Presentations 演示頻次") {
+            Section("Presentations") {
                 Picker("Presentations", selection: $pre) {
-                    Text("Multiple 多次").tag(1.0)
-                    Text("Once 一次").tag(3.0)
-                    Text("Never 從未").tag(5.0)
+                    Text("Multiple").tag(1.0)
+                    Text("Once").tag(3.0)
+                    Text("Never").tag(5.0)
                 }
                 .pickerStyle(.segmented)
             }
@@ -93,38 +88,33 @@ struct SubmitReviewView: View {
             // 总体推荐 Overall Recommend
             Section {
                 ratingRow(
-                    title: "Overall Recommend 總體推薦程度",
+                    title: "Overall Recommend",
                     value: $recommend,
-                    labels: Self.recommendLabels,
-                    labelsZh: Self.recommendLabelsZh
+                    labels: Self.recommendLabels
                 )
             }
 
             // 成绩 Grades Obtained
             Section {
                 ratingRow(
-                    title: "Grades Obtained 獲得的成績",
+                    title: "Grades Obtained",
                     value: $grade,
-                    labels: Self.gradeLabels,
-                    labelsZh: Self.gradeLabelsZh
+                    labels: Self.gradeLabels
                 )
                 ratingRow(
-                    title: "Workload 課程工作量",
+                    title: "Workload",
                     value: $assignment,
-                    labels: Self.assignmentLabels,
-                    labelsZh: Self.assignmentLabelsZh
+                    labels: Self.assignmentLabels
                 )
                 ratingRow(
-                    title: "Difficulty 難易程度",
+                    title: "Difficulty",
                     value: $hard,
-                    labels: Self.hardLabels,
-                    labelsZh: Self.hardLabelsZh
+                    labels: Self.hardLabels
                 )
                 ratingRow(
-                    title: "Usefulness 課程實用性",
+                    title: "Usefulness",
                     value: $reward,
-                    labels: Self.rewardLabels,
-                    labelsZh: Self.rewardLabelsZh
+                    labels: Self.rewardLabels
                 )
             }
 
@@ -135,7 +125,7 @@ struct SubmitReviewView: View {
                         .font(.subheadline)
                         .bold()
 
-                    Text("這門課程的內容包含什麼，這些內容是否合理和有意義？\n這門課的評核（作業，考試等）是否合理？\n這門課的講師的授課是否使你對學習保持熱情？")
+                    Text("Does the course cover useful topics and content?\nIs the assessment reasonably arranged (assignments, exams, etc.)?\nDid the teaching of the instructor make your learning more passionate?")
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -189,21 +179,15 @@ struct SubmitReviewView: View {
     private func ratingRow(
         title: String,
         value: Binding<Int>,
-        labels: [String],
-        labelsZh: [String]
+        labels: [String]
     ) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(title)
                 .font(.subheadline)
             StarRatingInput(value: value)
-            HStack {
-                Text(labels[value.wrappedValue])
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Text(labelsZh[value.wrappedValue])
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
-            }
+            Text(labels[value.wrappedValue])
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
         .padding(.vertical, 4)
     }

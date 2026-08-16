@@ -38,7 +38,7 @@ struct CatalogView: View {
                 courseList
             }
         }
-        .navigationTitle("目錄")
+        .navigationTitle("Catalog")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Route.self) { route in
             route.destination
@@ -53,7 +53,7 @@ struct CatalogView: View {
     // MARK: 学院列表
     private var facultyList: some View {
         List {
-            Section("Faculties 學院") {
+            Section("Faculties") {
                 ForEach(Self.faculties, id: \.self) { unit in
                     Button {
                         open(unit: unit)
@@ -77,7 +77,7 @@ struct CatalogView: View {
                 }
             }
 
-            Section("GE Course 通識課程") {
+            Section("GE Course") {
                 Button {
                     open(unit: "gecourse")
                 } label: {
@@ -142,7 +142,7 @@ struct CatalogView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let errorMessage {
                 ContentUnavailableView {
-                    Label("加載失敗", systemImage: "wifi.exclamationmark")
+                    Label("Loading Failed", systemImage: "wifi.exclamationmark")
                 } description: {
                     Text(errorMessage)
                 }

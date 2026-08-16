@@ -36,7 +36,7 @@ struct HomeView: View {
             }
             .padding(.bottom, 40)
         }
-        .navigationTitle("首頁")
+        .navigationTitle("Home")
         .navigationBarTitleDisplayMode(.inline)
         .task {
             guard statistics.isEmpty else { return }
@@ -64,7 +64,7 @@ struct HomeView: View {
 
             VStack(alignment: .leading, spacing: 6) {
                 LoopingTypewriterText(
-                    fullTexts: ["What2REG @UM", "澳大選咩課"],
+                    fullTexts: ["What2REG @UM", "What to take @ UM"],
                     typingSpeed: 0.09,
                     pauseTime: 1.4
                 )
@@ -73,9 +73,6 @@ struct HomeView: View {
                 .foregroundStyle(.primary)
 
                 Text("Course review platform for University of Macau")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text("專為澳大學生而設的課程評價網站")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -208,13 +205,8 @@ struct SearchCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(isProfMode ? "Search Instructors" : "Search Courses")
-                        .font(.headline)
-                    Text(isProfMode ? "搜尋講師" : "搜尋課程")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
+                Text(isProfMode ? "Search Instructors" : "Search Courses")
+                    .font(.headline)
                 Spacer()
                 Toggle("", isOn: $isProfMode)
                     .labelsHidden()
@@ -242,9 +234,6 @@ struct SearchCard: View {
             .tint(.blue)
 
             Text("Search by course codes/titles, or name of instructors (partial search supported)")
-                .font(.caption2)
-                .foregroundStyle(.tertiary)
-            Text("鍵入部分課程代碼/名稱或講師姓名")
                 .font(.caption2)
                 .foregroundStyle(.tertiary)
             Text("Data Source: reg.um.edu.mo")

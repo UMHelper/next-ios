@@ -23,7 +23,7 @@ struct ProfessorView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let errorMessage {
                 ContentUnavailableView {
-                    Label("加載失敗", systemImage: "wifi.exclamationmark")
+                    Label("Loading Failed", systemImage: "wifi.exclamationmark")
                 } description: {
                     Text(errorMessage)
                 }
@@ -31,7 +31,7 @@ struct ProfessorView: View {
                 ContentUnavailableView {
                     Label("No course found", systemImage: "person")
                 } description: {
-                    Text("暫無此講師的課程資料")
+                    Text("No course records for this instructor")
                 }
             } else {
                 ScrollView {
@@ -94,14 +94,14 @@ struct ProfCourseCard: View {
                 }
             }
 
-            ScoreChip(title: "Overall", titleZh: "總體", value: prof.result)
+            ScoreChip(title: "Overall", value: prof.result)
 
             HStack {
-                ScoreChip(title: "Grade", titleZh: "成績", value: prof.grade)
+                ScoreChip(title: "Grade", value: prof.grade)
                 Spacer()
-                ScoreChip(title: "Easy", titleZh: "難度", value: prof.hard)
+                ScoreChip(title: "Easy", value: prof.hard)
                 Spacer()
-                ScoreChip(title: "Outcome", titleZh: "實用性", value: prof.reward)
+                ScoreChip(title: "Outcome", value: prof.reward)
                 Spacer()
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Comments")

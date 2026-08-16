@@ -22,7 +22,7 @@ struct TimetableView: View {
                     ContentUnavailableView {
                         Label("NO course in your timetable cart", systemImage: "calendar.badge.plus")
                     } description: {
-                        Text("前往課程/評價頁把課程時間加入購物車")
+                        Text("Add sections to the timetable cart from course or review pages")
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 60)
@@ -34,7 +34,7 @@ struct TimetableView: View {
             .padding(16)
             .padding(.bottom, 40)
         }
-        .navigationTitle("課程表")
+        .navigationTitle("Timetable")
         .navigationBarTitleDisplayMode(.inline)
     }
 

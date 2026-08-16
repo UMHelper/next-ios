@@ -121,7 +121,7 @@ struct CommentView: View {
     private func vote(emoji: String) {
         guard !isVoting else { return }
         if myVotes.contains(where: { $0.emoji == emoji }) {
-            ToastCenter.shared.show("您已經投票過 " + emoji)
+            ToastCenter.shared.show("You have already voted for " + emoji)
             return
         }
         isVoting = true
@@ -233,7 +233,7 @@ struct CommentView: View {
     private func submitReply() {
         let text = replyText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard text.count >= 5, text.count <= 250 else {
-            ToastCenter.shared.show("回覆太短或太長！禁止無意義垃圾回復。")
+            ToastCenter.shared.show("Reply too short or too long! No spam allowed.")
             return
         }
         Task {
@@ -270,7 +270,7 @@ struct ReviewView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let errorMessage {
                 ContentUnavailableView {
-                    Label("加載失敗", systemImage: "wifi.exclamationmark")
+                    Label("Loading Failed", systemImage: "wifi.exclamationmark")
                 } description: {
                     Text(errorMessage)
                 }
@@ -405,13 +405,13 @@ struct ReviewView: View {
     // MARK: 评分仪表（与 Web 端右侧 Card 对应）
     private func gaugeCard(_ data: ReviewPageData) -> some View {
         HStack {
-            ScoreGauge(title: "Overall", titleZh: "總體", value: data.prof.result)
+            ScoreGauge(title: "Overall", value: data.prof.result)
             Spacer()
-            ScoreGauge(title: "Grade", titleZh: "成績", value: data.prof.grade)
+            ScoreGauge(title: "Grade", value: data.prof.grade)
             Spacer()
-            ScoreGauge(title: "Difficulty", titleZh: "難度", value: data.prof.hard)
+            ScoreGauge(title: "Difficulty", value: data.prof.hard)
             Spacer()
-            ScoreGauge(title: "Usefulness", titleZh: "實用性", value: data.prof.reward)
+            ScoreGauge(title: "Usefulness", value: data.prof.reward)
         }
         .padding(16)
         .glassEffect(in: .rect(cornerRadius: 16.0))
@@ -491,13 +491,12 @@ struct ReviewView: View {
         let noteEn = data.prof.admin_note_en
         if (note?.isEmpty == false) || (noteEn?.isEmpty == false) {
             VStack(alignment: .leading, spacing: 6) {
-                Label("Message From UMHelper: / 來自UMHelper的消息：", systemImage: "exclamationmark.triangle.fill")
+                Label("Message From UMHelper:", systemImage: "exclamationmark.triangle.fill")
                     .font(.footnote)
                     .bold()
                 if let noteEn, !noteEn.isEmpty {
                     Text(noteEn).font(.footnote)
-                }
-                if let note, !note.isEmpty {
+                } else if let note, !note.isEmpty {
                     Text(note).font(.footnote)
                 }
             }
@@ -547,7 +546,7 @@ struct TimetableSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("完成") { dismiss() }
+                    Button("Done") { dismiss() }
                 }
             }
         }
@@ -576,7 +575,7 @@ struct TimetableSheet: View {
             // 加入课程表购物车（与 Web 端 Add to Schedule Cart 对应）
             Button {
                 TimetableCartStore.shared.add(timetable, code: code, prof: prof)
-                ToastCenter.shared.show("已加入課程表")
+                ToastCenter.shared.show("Added to timetable")
             } label: {
                 Label("Add to Schedule Cart", systemImage: "cart.badge.plus")
                     .font(.footnote)

@@ -37,21 +37,13 @@ struct NonInteractiveStarView: View {
 /// 分数胶囊：数值 + 成绩字母 + 分段渐变色（Overall/Grade/Difficulty/Usefulness 通用）
 struct ScoreChip: View {
     let title: String
-    let titleZh: String?
     let value: Double
 
     var body: some View {
         VStack(alignment: .leading, spacing: 3) {
-            HStack(spacing: 3) {
-                Text(title)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                if let titleZh {
-                    Text(titleZh)
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
-            }
+            Text(title)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(String(format: "%.1f", value))
                     .font(.headline)
@@ -68,7 +60,6 @@ struct ScoreChip: View {
 /// 圆形仪表盘评分（评价页总体/成绩/难度/实用性）
 struct ScoreGauge: View {
     let title: String
-    let titleZh: String
     let value: Double
     var tint: Color = .blue
 
@@ -85,9 +76,6 @@ struct ScoreGauge: View {
             VStack(spacing: -2) {
                 Text(title)
                     .font(.footnote)
-                Text(titleZh)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
             }
         }
     }
@@ -156,12 +144,12 @@ struct CommentImageView: View {
 #Preview {
     VStack(spacing: 24) {
         NonInteractiveStarView(rating: 4.5)
-        ScoreChip(title: "Overall", titleZh: "總體", value: 4.32)
+        ScoreChip(title: "Overall", value: 4.32)
         HStack {
-            ScoreGauge(title: "Overall", titleZh: "總體", value: 4.3)
-            ScoreGauge(title: "Grade", titleZh: "成績", value: 4.5)
-            ScoreGauge(title: "Difficulty", titleZh: "難度", value: 3.8)
-            ScoreGauge(title: "Usefulness", titleZh: "實用性", value: 4.0)
+            ScoreGauge(title: "Overall", value: 4.3)
+            ScoreGauge(title: "Grade", value: 4.5)
+            ScoreGauge(title: "Difficulty", value: 3.8)
+            ScoreGauge(title: "Usefulness", value: 4.0)
         }
         OfferedComView()
     }

@@ -87,7 +87,7 @@ struct SearchTabRootView: View {
 
             ScrollView {
                 VStack(spacing: 24) {
-                    LoopingTypewriterText(fullTexts: ["What2REG @UM", "澳大選咩課"])
+                    LoopingTypewriterText(fullTexts: ["What2REG @UM", "What to take @ UM"])
                         .font(.title2)
                         .bold()
                         .padding(.top, 32)
@@ -101,7 +101,7 @@ struct SearchTabRootView: View {
                 }
             }
         }
-        .navigationTitle("搜索")
+        .navigationTitle("Search")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

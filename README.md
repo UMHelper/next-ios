@@ -10,6 +10,7 @@
 - 语言：Swift 5 + Swift 6 并发（`SWIFT_APPROACHABLE_CONCURRENCY`、默认 MainActor 隔离）
 - UI：SwiftUI + iOS 26 Liquid Glass（`.glassEffect()` / `GlassEffectContainer` / `.glassEffectID(_:in:)`、
   `TabView(.sidebarAdaptable)` 液态玻璃标签栏、`Gauge` 仪表盘、`ViewThatFits`）
+- UI 文案：纯英文（不做国际化；中文仅保留在代码注释与文档中，课程中文名等来自服务端数据）
 - 数据：统一走 next-web 新增的只读 JSON API（详见 [next-web/docs/ios-api-research.md](../next-web/docs/ios-api-research.md)）
 
 ## 2. 功能清单（与 next-web 页面一一对应）

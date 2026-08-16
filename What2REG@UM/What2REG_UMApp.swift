@@ -21,7 +21,7 @@ struct What2REG_UMApp: App {
 struct RootTabView: View {
     var body: some View {
         TabView {
-            Tab("首頁", systemImage: "house.fill") {
+            Tab("Home", systemImage: "house.fill") {
                 NavigationStack {
                     HomeView()
                         .navigationDestination(for: Route.self) { route in
@@ -30,7 +30,7 @@ struct RootTabView: View {
                 }
             }
 
-            Tab("搜索", systemImage: "magnifyingglass") {
+            Tab("Search", systemImage: "magnifyingglass") {
                 NavigationStack {
                     SearchTabRootView()
                         .navigationDestination(for: Route.self) { route in
@@ -39,19 +39,19 @@ struct RootTabView: View {
                 }
             }
 
-            Tab("課程表", systemImage: "calendar") {
+            Tab("Timetable", systemImage: "calendar") {
                 NavigationStack {
                     TimetableView()
                 }
             }
 
-            Tab("目錄", systemImage: "books.vertical.fill") {
+            Tab("Catalog", systemImage: "books.vertical.fill") {
                 NavigationStack {
                     CatalogView()
                 }
             }
 
-            Tab("關於", systemImage: "info.circle.fill") {
+            Tab("About", systemImage: "info.circle.fill") {
                 NavigationStack {
                     AboutView()
                 }

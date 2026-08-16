@@ -24,7 +24,7 @@ struct CourseDetailView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if let errorMessage {
                 ContentUnavailableView {
-                    Label("加載失敗", systemImage: "wifi.exclamationmark")
+                    Label("Loading Failed", systemImage: "wifi.exclamationmark")
                 } description: {
                     Text(errorMessage)
                 }
@@ -217,15 +217,15 @@ struct ProfListItemView: View {
             }
 
             // MARK: Overall
-            ScoreChip(title: "Overall", titleZh: "總體", value: prof.result)
+            ScoreChip(title: "Overall", value: prof.result)
 
             // MARK: Detail
             HStack {
-                ScoreChip(title: "Grade", titleZh: "成績", value: prof.grade)
+                ScoreChip(title: "Grade", value: prof.grade)
                 Spacer()
-                ScoreChip(title: "Difficulty", titleZh: "難度", value: prof.hard)
+                ScoreChip(title: "Difficulty", value: prof.hard)
                 Spacer()
-                ScoreChip(title: "Useful", titleZh: "實用性", value: prof.reward)
+                ScoreChip(title: "Useful", value: prof.reward)
                 Spacer()
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Comments")

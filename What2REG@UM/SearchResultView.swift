@@ -179,7 +179,7 @@ struct SearchResultView: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let errorMessage {
                     ContentUnavailableView {
-                        Label("搜索失敗", systemImage: "wifi.exclamationmark")
+                        Label("Search Failed", systemImage: "wifi.exclamationmark")
                     } description: {
                         Text(errorMessage)
                     }
@@ -188,14 +188,14 @@ struct SearchResultView: View {
                     ContentUnavailableView {
                         Label("No result found :(", systemImage: "magnifyingglass")
                     } description: {
-                        Text("沒有找到相關課程")
+                        Text("No matching courses found")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if currentMode == "prof" && profs.isEmpty && !isLoading {
                     ContentUnavailableView {
                         Label("No result found :(", systemImage: "magnifyingglass")
                     } description: {
-                        Text("沒有找到相關講師")
+                        Text("No matching instructors found")
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -227,7 +227,7 @@ struct SearchResultView: View {
                 }
             }
         }
-        .navigationTitle("搜索結果")
+        .navigationTitle("Search Results")
         .navigationBarTitleDisplayMode(.inline)
         .navigationDestination(for: Route.self) { route in
             route.destination

@@ -16,9 +16,9 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .badResponse(let code): return "服务器返回错误状态码 \(code)"
-        case .badURL: return "无效的请求地址"
-        case .decoding(let detail): return "数据解析失败：\(detail)"
+        case .badResponse(let code): return "Server returned status code \(code)"
+        case .badURL: return "Invalid request URL"
+        case .decoding(let detail): return "Failed to decode response: \(detail)"
         }
     }
 }
