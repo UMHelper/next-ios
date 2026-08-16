@@ -301,6 +301,12 @@ struct BottomSearchBar: View {
                 .padding(.vertical)
                 .onAppear {
                     keyword = ""
+                    // 首页开屏自动聚焦搜索栏并弹出键盘(ASCII 键盘,见 TextField 配置)。
+                    // 启动瞬间直接置位 FocusState 会被丢弃,延迟到视图就绪后再聚焦。
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .milliseconds(400))
+                        isFocused = true
+                    }
                 }
             }
         }
