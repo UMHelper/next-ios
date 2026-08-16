@@ -246,38 +246,6 @@ struct SectionHeader: View {
     }
 }
 
-// MARK: - 玻璃主操作按钮
-
-struct GlassActionButton: View {
-    let title: String
-    var systemImage: String? = nil
-    var tint: Color = .blue
-    var isLoading = false
-    var disabled = false
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                if isLoading {
-                    ProgressView().controlSize(.small).tint(.white)
-                } else if let systemImage {
-                    Image(systemName: systemImage).font(.subheadline.weight(.semibold))
-                }
-                Text(title).font(.subheadline.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .foregroundStyle(.white)
-            .glassEffect(.regular.tint(tint).interactive())
-            .clipShape(RoundedRectangle(cornerRadius: 18))
-        }
-        .buttonStyle(.plain)
-        .disabled(disabled || isLoading)
-        .opacity(disabled ? 0.45 : 1)
-    }
-}
-
 // MARK: - 主题偏好（跟随系统 / 浅色 / 深色）
 
 enum AppTheme: String, CaseIterable, Identifiable {
