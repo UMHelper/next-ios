@@ -34,11 +34,10 @@ struct CourseDetailView: View {
         }
                 .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            if showTitle {
-                ToolbarItem(placement: .principal) {
-                    Text(code)
-                        .font(.headline)
-                }
+            ToolbarItem(placement: .principal) {
+                Text(code)
+                    .font(.headline)
+                    .opacity(showTitle ? 1 : 0)
             }
         }
         .task {
@@ -94,20 +93,12 @@ struct CourseDetailView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
-            .background(
-                GeometryReader { geo in
-                    Color.clear
-                        .preference(
-                            key: ScrollOffsetKey.self,
-                            value: geo.frame(in: .named("courseScroll")).minY
-                        )
-                }
-            )
         }
-        .coordinateSpace(name: "courseScroll")
-        .onPreferenceChange(ScrollOffsetKey.self) { offset in
+        .onScrollGeometryChange(for: CGFloat.self) { geometry in
+            geometry.contentOffset.y
+        } action: { _, newOffset in
             withAnimation(.easeInOut(duration: 0.2)) {
-                showTitle = offset < -20
+                showTitle = newOffset > 20
             }
         }
     }
