@@ -163,6 +163,22 @@ struct BottomSearchBar: View {
         ZStack {
             VStack {
                 Spacer()
+                // 底部渐隐遮罩(与系统背景同色,深色=黑/浅色=白,原始设计)
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }),
+                        Color(UIColor { tc in tc.userInterfaceStyle == .dark ? .black : .white }).opacity(0),
+                    ]),
+                    startPoint: .bottom,
+                    endPoint: .top
+                )
+                .ignoresSafeArea()
+                .frame(height: 64)
+                .allowsHitTesting(false)
+            }
+
+            VStack {
+                Spacer()
                 HStack(spacing: 12) {
 
                     // 搜索输入(玻璃容器 + 内部 glassEffect,与原始设计一致)
@@ -226,15 +242,6 @@ struct BottomSearchBar: View {
                 }
             }
         }
-        // 固定为内容高度,避免 Spacer 在 VStack 布局中无限扩张占据屏幕下半部
-        .fixedSize(horizontal: false, vertical: true)
-        // 实色蓝底(与页面背景底部颜色一致,无白色遮罩)
-        .background(
-            scheme == .dark
-                ? Color(red: 0.02, green: 0.06, blue: 0.15)
-                : Color(red: 0.70, green: 0.83, blue: 0.97)
-        )
-        .ignoresSafeArea(edges: .bottom)
     }
 
     private func modeIcon(_ mode: String, systemName: String, isActive: Bool) -> some View {

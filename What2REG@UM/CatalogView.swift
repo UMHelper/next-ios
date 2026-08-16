@@ -70,7 +70,7 @@ struct CatalogView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-            .padding(.bottom, 44)
+            .padding(.bottom, 20)
         }
     }
 
@@ -158,7 +158,7 @@ struct CatalogView: View {
                     }
                     .padding(.horizontal, 20)
                     .padding(.top, 4)
-                    .padding(.bottom, 44)
+                    .padding(.bottom, 20)
                 }
             }
         }

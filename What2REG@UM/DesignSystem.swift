@@ -25,8 +25,8 @@ struct LiquidBackground: View {
                     LinearGradient(
                         colors: light
                             ? [
-                                Color(red: 0.58, green: 0.76, blue: 0.95),
                                 Color(red: 0.70, green: 0.83, blue: 0.97),
+                                Color(red: 0.85, green: 0.92, blue: 1.00),
                             ]
                             : [
                                 Color(red: 0.05, green: 0.13, blue: 0.28),
