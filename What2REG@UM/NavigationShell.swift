@@ -34,27 +34,22 @@ enum SidebarDestination: String, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - 侧边栏面板（不透明毛玻璃底）
+// MARK: - 侧边栏面板(与整体设计统一的玻璃卡片:毛玻璃底 + 发丝描边 + 详情行式菜单项)
 
 struct SidebarMenu: View {
     @Binding var isOpen: Bool
     @Binding var selection: SidebarDestination
     @Binding var theme: AppTheme
+    @Environment(\.colorScheme) private var scheme
 
-    private var panelShape: UnevenRoundedRectangle {
-        UnevenRoundedRectangle(
-            topLeadingRadius: 0,
-            bottomLeadingRadius: 0,
-            bottomTrailingRadius: 34,
-            topTrailingRadius: 34,
-            style: .continuous
-        )
+    private var panelShape: RoundedRectangle {
+        RoundedRectangle(cornerRadius: 28)
     }
 
     var body: some View {
         ZStack(alignment: .leading) {
             if isOpen {
-                // 遮罩(压暗 + 轻微模糊,避免面板显得透明)
+                // 遮罩(压暗背景)
                 Color.black.opacity(0.42)
                     .ignoresSafeArea()
                     .transition(.opacity)
@@ -62,10 +57,10 @@ struct SidebarMenu: View {
                         withAnimation(.spring(duration: 0.35)) { isOpen = false }
                     }
 
-                // 面板:实心毛玻璃材质 + 玻璃高光 + 晶边
+                // 面板:悬浮圆角玻璃卡(与 GlassCard 同一套描边/投影)
                 VStack(alignment: .leading, spacing: 6) {
-                    // 头部品牌
-                    VStack(alignment: .leading, spacing: 2) {
+                    // 品牌头部(紧凑组)
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("What2REG @UM")
                             .font(.title3.weight(.bold))
                         Text("Course reviews for University of Macau")
@@ -73,12 +68,12 @@ struct SidebarMenu: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(.horizontal, 18)
-                    .padding(.top, 24)
-                    .padding(.bottom, 14)
+                    .padding(.top, 20)
+                    .padding(.bottom, 10)
 
                     Divider().opacity(0.4).padding(.horizontal, 14)
 
-                    // 菜单项
+                    // 菜单项(与详情行同构:图标 + 文字 + 右对齐箭头)
                     ForEach(SidebarDestination.allCases) { item in
                         Button {
                             withAnimation(.spring(duration: 0.35)) {
@@ -86,20 +81,17 @@ struct SidebarMenu: View {
                                 isOpen = false
                             }
                         } label: {
-                            HStack(spacing: 12) {
+                            HStack(spacing: 10) {
                                 Image(systemName: item.systemImage)
-                                    .font(.system(size: 15, weight: .semibold))
-                                    .foregroundStyle(selection == item ? .blue : .primary)
-                                    .frame(width: 34, height: 34)
-                                    .glassEffect()
+                                    .font(.caption)
+                                    .foregroundStyle(selection == item ? .blue : .secondary)
                                 Text(item.title)
-                                    .font(.body.weight(selection == item ? .semibold : .regular))
+                                    .font(.footnote.weight(selection == item ? .semibold : .regular))
+                                    .foregroundStyle(selection == item ? .blue : .primary)
                                 Spacer()
-                                if selection == item {
-                                    Circle()
-                                        .fill(Color.blue)
-                                        .frame(width: 7, height: 7)
-                                }
+                                Image(systemName: "chevron.right")
+                                    .font(.caption2.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
                             }
                             .padding(.horizontal, 14)
                             .padding(.vertical, 9)
@@ -108,9 +100,9 @@ struct SidebarMenu: View {
                         .buttonStyle(.plain)
                     }
 
-                    Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 6)
+                    Divider().opacity(0.4).padding(.horizontal, 14).padding(.top, 4)
 
-                    // 主题切换（System / Light / Dark）
+                    // 外观切换
                     VStack(alignment: .leading, spacing: 8) {
                         SectionHeader(title: "Appearance")
                         Picker("Appearance", selection: $theme) {
@@ -130,16 +122,21 @@ struct SidebarMenu: View {
                         .italic()
                         .foregroundStyle(.tertiary)
                         .padding(.horizontal, 18)
-                        .padding(.bottom, 22)
+                        .padding(.bottom, 18)
                 }
-                .frame(width: 288)
+                .frame(width: 280)
                 .frame(maxHeight: .infinity, alignment: .topLeading)
                 .background(.regularMaterial, in: panelShape)
                 .glassEffect(in: panelShape)
                 .overlay {
-                    panelShape.strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
+                    panelShape.strokeBorder(
+                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                        lineWidth: 1
+                    )
                 }
-                .shadow(color: .black.opacity(0.35), radius: 30, x: 8, y: 0)
+                .shadow(color: .black.opacity(0.30), radius: 28, x: 6, y: 0)
+                .padding(.leading, 12)
+                .padding(.vertical, 12)
                 .transition(.move(edge: .leading).combined(with: .opacity))
             }
         }
