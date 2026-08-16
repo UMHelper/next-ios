@@ -325,10 +325,9 @@ struct ReviewView: View {
 
     // MARK: 评论列表(累积加载的评论)
     private var commentsSection: some View {
-        let total = data?.prof.comments ?? comments.count
         let topLevel = comments.filter { $0.replyto == nil }
         return VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: "Reviews", subtitle: "\(total) comment\(total == 1 ? "" : "s")")
+            SectionHeader(title: "Reviews")
                 .padding(.horizontal, 16)
 
             if topLevel.isEmpty && !isLoadingMore {
