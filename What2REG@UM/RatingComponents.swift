@@ -56,65 +56,6 @@ struct ScoreColumn: View {
     }
 }
 
-/// 单项评分条：标签 + 细进度条 + 彩色文字数值(无任何色块)
-struct RatingBar: View {
-    let title: String
-    let value: Double
-
-    var body: some View {
-        VStack(spacing: 5) {
-            HStack(spacing: 6) {
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(value, format: .number.precision(.fractionLength(1)))
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.primary)
-                Text(value.gpaLetter)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(value.bgColor)
-            }
-            ProgressView(value: min(max(value, 0), 5), total: 5)
-                .tint(value.bgColor)
-        }
-    }
-}
-
-/// 教授评分卡：大号 Overall 数字 + 三条细评分条(纯文字+细线,无圆环色块)
-struct ProfRatingCard: View {
-    let prof: Prof
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Overall 大数字
-            HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text("Overall")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                Spacer()
-                Text(String(format: "%.1f", prof.result))
-                    .font(.system(size: 34, weight: .heavy, design: .rounded))
-                    .foregroundStyle(prof.result.bgColor)
-                Text(prof.result.gpaLetter)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(prof.result.bgColor)
-            }
-            ProgressView(value: min(max(prof.result, 0), 5), total: 5)
-                .tint(prof.result.bgColor)
-
-            Divider().opacity(0.4)
-
-            // 三项评分条
-            VStack(spacing: 12) {
-                RatingBar(title: "Grade", value: prof.grade)
-                RatingBar(title: "Difficulty", value: prof.hard)
-                RatingBar(title: "Usefulness", value: prof.reward)
-            }
-        }
-    }
-}
-
 /// "Offered" 文字标记(绿色小字 + 星光,无底色)
 struct OfferedComView: View {
     var body: some View {

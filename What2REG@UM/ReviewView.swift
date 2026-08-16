@@ -286,16 +286,6 @@ struct ReviewView: View {
             // 提交评价成功后回到本页，刷新第一页
             Task { await load(page: 1) }
         }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button {
-                    showTimetable = true
-                } label: {
-                    Image(systemName: "calendar.badge.clock")
-                }
-                .disabled(data?.timetable.isEmpty != false)
-            }
-        }
     }
 
     private func load(page: Int) async {
@@ -315,7 +305,6 @@ struct ReviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header(data)
-                gaugeCard(data)
                 commentsSection(data)
                 pagination(data)
                 adminNotice(data)
@@ -329,70 +318,98 @@ struct ReviewView: View {
         }
     }
 
-    // MARK: 头部
+    // MARK: 头部(课程信息 + 教授 + 评分整合一张卡片,参考课程页/搜索页设计)
     private func header(_ data: ReviewPageData) -> some View {
         GlassCard(cornerRadius: 26, padding: 18) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    NavigationLink(value: Route.course(code)) {
-                        Text(data.course.New_code)
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.blue)
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        // 课程代码(点击进入课程页)
+                        NavigationLink(value: Route.course(code)) {
+                            Text(data.course.New_code)
+                                .font(.subheadline.weight(.heavy))
+                        }
+                        .buttonStyle(.plain)
+
+                        if let titleEng = data.course.courseTitleEng, !titleEng.isEmpty {
+                            Text(titleEng)
+                                .font(.subheadline)
+                                .lineLimit(2)
+                        }
+                        if let titleChi = data.course.courseTitleChi, !titleChi.isEmpty {
+                            Text(titleChi)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+
+                        // 教授名(点击进入教授页)
+                        NavigationLink(value: Route.professor(prof)) {
+                            HStack(spacing: 4) {
+                                Text(data.prof.prof_id)
+                                    .font(.title3.weight(.bold))
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+
                     Spacer()
+
                     if data.prof.is_offered == 1 {
                         OfferedComView()
                     }
                 }
 
-                if let titleEng = data.course.courseTitleEng, !titleEng.isEmpty {
-                    Text(titleEng)
-                        .font(.headline)
-                        .lineLimit(2)
-                }
-                if let titleChi = data.course.courseTitleChi, !titleChi.isEmpty {
-                    Text(titleChi)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                Divider().opacity(0.4)
 
-                NavigationLink(value: Route.professor(prof)) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "person.crop.circle.fill")
-                            .foregroundStyle(.blue)
-                        Text(data.prof.prof_id)
-                            .font(.title2.weight(.bold))
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                // 五行评分:标签在上,彩色分数在下(无进度条,与其他信息列统一)
+                Grid(horizontalSpacing: 8) {
+                    GridRow {
+                        ScoreColumn(title: "Overall", value: data.prof.result)
+                        ScoreColumn(title: "Grade", value: data.prof.grade)
+                        ScoreColumn(title: "Difficulty", value: data.prof.hard)
+                        ScoreColumn(title: "Usefulness", value: data.prof.reward)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Comments")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                            Text(String(data.prof.comments))
+                                .font(.subheadline.weight(.bold))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
                 }
-                .buttonStyle(.plain)
 
-                HStack(spacing: 10) {
+                Divider().opacity(0.4)
+
+                // 操作行:提交评价 / 时间表(纯文字按钮,无多余图标)
+                HStack {
                     NavigationLink {
                         SubmitReviewView(code: code, prof: prof)
                     } label: {
-                        Label("Submit Review", systemImage: "square.and.pencil")
+                        Text("Submit Review")
                             .font(.footnote.weight(.semibold))
                             .foregroundStyle(.blue)
                             .padding(.horizontal, 14)
-                            .padding(.vertical, 8)
+                            .padding(.vertical, 7)
                             .glassEffect(.regular.interactive())
                             .clipShape(Capsule())
                     }
                     .buttonStyle(.plain)
 
+                    Spacer()
+
                     if !data.timetable.isEmpty {
                         Button {
                             showTimetable = true
                         } label: {
-                            Label("Timetable", systemImage: "calendar")
+                            Text("Timetable")
                                 .font(.footnote.weight(.semibold))
                                 .padding(.horizontal, 14)
-                                .padding(.vertical, 8)
+                                .padding(.vertical, 7)
                                 .glassEffect(.regular.interactive())
                                 .clipShape(Capsule())
                         }
@@ -400,13 +417,6 @@ struct ReviewView: View {
                     }
                 }
             }
-        }
-    }
-
-    // MARK: 评分卡(大圆环 + 评分条)
-    private func gaugeCard(_ data: ReviewPageData) -> some View {
-        GlassCard(padding: 18) {
-            ProfRatingCard(prof: data.prof)
         }
     }
 
