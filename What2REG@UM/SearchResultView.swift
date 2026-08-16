@@ -291,8 +291,9 @@ struct SearchResultView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            // 胶囊形状直接烤进玻璃效果,选中时文字变化不闪矩形
-                            .glassEffect(.regular.interactive(), in: .capsule)
+                            // 用 regularMaterial 胶囊而非 glassEffect:芯片文字变化会改变尺寸,
+                            // 玻璃效果层在尺寸变化的一帧按矩形渲染(闪方块),材质背景原子渲染不闪烁
+                            .background(.regularMaterial, in: Capsule())
                             .overlay(
                                 Capsule()
                                     .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
@@ -328,8 +329,8 @@ struct SearchResultView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            // 胶囊形状直接烤进玻璃效果,选中时文字变化不闪矩形
-                            .glassEffect(.regular.interactive(), in: .capsule)
+                            // 与 Clear 同理:材质胶囊,文字长度变化不闪矩形
+                            .background(.regularMaterial, in: Capsule())
                             .overlay(
                                 Capsule()
                                     .strokeBorder(
