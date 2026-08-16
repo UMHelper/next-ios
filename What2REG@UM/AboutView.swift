@@ -88,6 +88,7 @@ struct AboutView: View {
                 Image(systemName: icon)
                     .font(.caption)
                     .foregroundStyle(.secondary)
+                    .frame(width: 18, height: 18)
                 Text(title)
                     .font(.footnote)
                 Spacer()
