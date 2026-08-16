@@ -118,7 +118,7 @@ struct CourseDetailView: View {
 
                 Divider().opacity(0.4)
 
-                // 七个信息:四列网格,左右对齐(第二行末列留空占位)
+                // 七个信息:四列网格,左右对齐;Duration 跨第 3+4 列避免截断
                 Grid(horizontalSpacing: 12, verticalSpacing: 12) {
                     GridRow {
                         fieldColumn("Credits", course.credits ?? "N/A")
@@ -130,8 +130,7 @@ struct CourseDetailView: View {
                         fieldColumn("Grading", course.gradingSystem ?? "N/A")
                         fieldColumn("Course Type", course.courseType ?? "N/A")
                         fieldColumn("Duration", course.duration ?? "N/A")
-                        Color.clear
-                            .frame(maxWidth: .infinity)
+                            .gridCellColumns(2)
                     }
                 }
                 .font(.caption)
