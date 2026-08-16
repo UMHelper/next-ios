@@ -110,7 +110,12 @@ struct ReviewView: View {
     @State private var isLoading = true
     @State private var errorMessage: String?
     @State private var page = 1
+    @State private var totalPage = 1
+    @State private var isLoadingMore = false
+    @State private var comments: [Comment] = []
     @State private var showTimetable = false
+    @State private var showAdminNotice = false
+    @State private var dismissNoticeTask: Task<Void, Never>?
 
     var body: some View {
         Group {
@@ -138,25 +143,58 @@ struct ReviewView: View {
     }
 
     private func load(page: Int) async {
-        isLoading = true
+        if page == 1 {
+            isLoading = true
+        } else {
+            isLoadingMore = true
+        }
         errorMessage = nil
         do {
             let newData = try await APIClient.fetchReviewPage(code: code, prof: prof, page: page)
-            data = newData
+            if page == 1 {
+                data = newData
+                comments = newData.comments
+            } else {
+                // 追加下一页评论(去重)
+                let existing = Set(comments.map { $0.id })
+                comments.append(contentsOf: newData.comments.filter { !existing.contains($0.id) })
+            }
             self.page = newData.page
+            totalPage = newData.total_page
+            if page == 1 {
+                showAdminNoticeIfNeeded(newData)
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+        isLoadingMore = false
+    }
+
+    /// 管理员通知:从顶部弹出,10 秒后自动消失(与 Web 端 toast 行为一致)
+    private func showAdminNoticeIfNeeded(_ data: ReviewPageData) {
+        let note = data.prof.admin_note
+        let noteEn = data.prof.admin_note_en
+        guard (note?.isEmpty == false) || (noteEn?.isEmpty == false) else { return }
+        withAnimation(.spring(duration: 0.4)) {
+            showAdminNotice = true
+        }
+        dismissNoticeTask?.cancel()
+        dismissNoticeTask = Task {
+            try? await Task.sleep(for: .seconds(10))
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.4)) {
+                showAdminNotice = false
+            }
+        }
     }
 
     private func content(_ data: ReviewPageData) -> some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header(data)
-                commentsSection(data)
-                pagination(data)
-                adminNotice(data)
+                commentsSection
+                loadMoreSentinel
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
@@ -164,6 +202,14 @@ struct ReviewView: View {
         }
         .sheet(isPresented: $showTimetable) {
             TimetableSheet(timetables: data.timetable, code: code, prof: prof)
+        }
+        .overlay(alignment: .top) {
+            if showAdminNotice {
+                adminNoticeBanner
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.horizontal, 12)
+                    .padding(.top, 8)
+            }
         }
     }
 
@@ -269,14 +315,15 @@ struct ReviewView: View {
         }
     }
 
-    // MARK: 评论列表
-    private func commentsSection(_ data: ReviewPageData) -> some View {
-        let topLevel = data.comments.filter { $0.replyto == nil }
+    // MARK: 评论列表(累积加载的评论)
+    private var commentsSection: some View {
+        let total = data?.prof.comments ?? comments.count
+        let topLevel = comments.filter { $0.replyto == nil }
         return VStack(alignment: .leading, spacing: 14) {
-            SectionHeader(title: "Reviews", subtitle: "\(data.prof.comments) comment\(data.prof.comments == 1 ? "" : "s")")
+            SectionHeader(title: "Reviews", subtitle: "\(total) comment\(total == 1 ? "" : "s")")
                 .padding(.horizontal, 16)
 
-            if topLevel.isEmpty {
+            if topLevel.isEmpty && !isLoadingMore {
                 GlassCard {
                     Text("No comment yet. Be the first to submit your review!")
                         .font(.subheadline)
@@ -287,69 +334,55 @@ struct ReviewView: View {
                 ForEach(topLevel) { comment in
                     CommentView(
                         comment: comment,
-                        replies: data.comments.filter { $0.replyto == comment.id }
+                        replies: comments.filter { $0.replyto == comment.id }
                     )
                 }
             }
         }
     }
 
-    // MARK: 分页
-    private func pagination(_ data: ReviewPageData) -> some View {
-        GlassCard(padding: 10) {
+    // MARK: 无感自动加载:滚动到底部时加载下一页
+    @ViewBuilder
+    private var loadMoreSentinel: some View {
+        if page < totalPage {
             HStack {
-                Button {
-                    guard page > 1 else { return }
-                    Task { await load(page: page - 1) }
-                } label: {
-                    Image(systemName: "chevron.left")
-                        .frame(width: 36, height: 36)
-                        .glassEffect(.regular.interactive(), in: .circle)
-                }
-                .buttonStyle(.plain)
-                .disabled(page <= 1)
-                .opacity(page <= 1 ? 0.35 : 1)
-
                 Spacer()
-                Text("\(page) / \(data.total_page)")
-                    .font(.footnote.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                Spacer()
-
-                Button {
-                    guard page < data.total_page else { return }
-                    Task { await load(page: page + 1) }
-                } label: {
-                    Image(systemName: "chevron.right")
-                        .frame(width: 36, height: 36)
-                        .glassEffect(.regular.interactive(), in: .circle)
+                if isLoadingMore {
+                    ProgressView()
                 }
-                .buttonStyle(.plain)
-                .disabled(page >= data.total_page)
-                .opacity(page >= data.total_page ? 0.35 : 1)
+                Spacer()
+            }
+            .frame(height: 28)
+            .contentShape(Rectangle())
+            .onAppear {
+                guard !isLoadingMore else { return }
+                Task { await load(page: page + 1) }
             }
         }
     }
 
-    // MARK: 管理员通知
-    @ViewBuilder
-    private func adminNotice(_ data: ReviewPageData) -> some View {
-        let note = data.prof.admin_note
-        let noteEn = data.prof.admin_note_en
-        if (note?.isEmpty == false) || (noteEn?.isEmpty == false) {
-            GlassCard(padding: 14) {
-                VStack(alignment: .leading, spacing: 6) {
-                    Label("Message From UMHelper:", systemImage: "exclamationmark.triangle.fill")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.orange)
-                    if let noteEn, !noteEn.isEmpty {
-                        Text(noteEn).font(.footnote)
-                    } else if let note, !note.isEmpty {
-                        Text(note).font(.footnote)
-                    }
-                }
+    // MARK: 管理员通知横幅(顶部弹出,自动消失)
+    private var adminNoticeBanner: some View {
+        let note = data?.prof.admin_note
+        let noteEn = data?.prof.admin_note_en
+        return VStack(alignment: .leading, spacing: 6) {
+            Label("Message From UMHelper:", systemImage: "exclamationmark.triangle.fill")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.orange)
+            if let noteEn, !noteEn.isEmpty {
+                Text(noteEn).font(.footnote)
+            } else if let note, !note.isEmpty {
+                Text(note).font(.footnote)
             }
         }
+        .padding(14)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .glassEffect(in: .rect(cornerRadius: 20))
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .strokeBorder(Color.white.opacity(0.3), lineWidth: 1)
+        )
+        .shadow(color: .black.opacity(0.2), radius: 18, y: 8)
     }
 }
 
