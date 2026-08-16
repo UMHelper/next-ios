@@ -291,8 +291,8 @@ struct SearchResultView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .glassEffect(.regular.interactive())
-                            .clipShape(Capsule())
+                            // 胶囊形状直接烤进玻璃效果,选中时文字变化不闪矩形
+                            .glassEffect(.regular.interactive(), in: .capsule)
                             .overlay(
                                 Capsule()
                                     .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
@@ -328,8 +328,8 @@ struct SearchResultView: View {
                             }
                             .padding(.horizontal, 12)
                             .padding(.vertical, 7)
-                            .glassEffect(.regular.interactive())
-                            .clipShape(Capsule())
+                            // 胶囊形状直接烤进玻璃效果,选中时文字变化不闪矩形
+                            .glassEffect(.regular.interactive(), in: .capsule)
                             .overlay(
                                 Capsule()
                                     .strokeBorder(

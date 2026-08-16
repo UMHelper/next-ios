@@ -42,8 +42,8 @@ struct ToastOverlay: View {
                 .bold()
                 .padding(.horizontal, 18)
                 .padding(.vertical, 10)
-                .glassEffect()
-                .clipShape(Capsule())
+                // 形状直接烤进玻璃效果,避免出现时先闪一帧矩形
+                .glassEffect(in: .capsule)
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .padding(.top, 8)
                 .zIndex(999)

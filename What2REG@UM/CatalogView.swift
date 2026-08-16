@@ -298,8 +298,8 @@ struct CatalogView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .foregroundStyle(selected ? .white : .primary)
-                .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive())
-                .clipShape(Capsule())
+                // 胶囊形状直接烤进玻璃效果,选中状态切换时不闪矩形
+                .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
                 .overlay(
                     Capsule()
                         .strokeBorder(selected ? Color.clear : Color.secondary.opacity(0.25), lineWidth: 1)
