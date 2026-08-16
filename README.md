@@ -68,16 +68,26 @@ API 基址：`APIConfig.baseURL`（DEBUG 为 `http://localhost:3000/api`，Relea
    `.env.local` 默认指向生产 Supabase，因此本地服务返回真实数据。
 2. 准备 iOS 专用 API 共享密钥（首次构建必须，见第 6 节）：
    ```bash
-   cp Secrets/UMSecrets.example Secrets/UMSecrets.local
-   # 编辑 UMSecrets.local，填入与 next-web 服务端环境变量 UM_IOS_API_SECRET 一致的密钥
+   cp Secrets/UMSecrets.example Secrets/UMSecrets.local             # 模拟器:本地联调密钥(与 .env.local 一致)
+   cp Secrets/UMSecrets.example Secrets/UMSecrets.production.local # 真机:生产密钥(与 umeh.top 一致)
    ```
-   Xcode 构建时由 `scripts/inject-secret.sh` 自动生成 `What2REG@UM/GeneratedSecrets.swift`（两者均已 gitignore）。
+   Xcode 构建时由 `scripts/inject-secret.sh` 按目标自动选择（模拟器 → `UMSecrets.local`，真机 → `UMSecrets.production.local`），
+   生成 `What2REG@UM/GeneratedSecrets.swift`（三者均已 gitignore）。
 3. 打开 `What2REG@UM.xcodeproj`（Xcode 26.5+），选择 iPhone 17 模拟器运行。
 4. 命令行构建：
    ```bash
    xcodebuild -project What2REG@UM.xcodeproj -scheme What2REG@UM \
      -destination "platform=iOS Simulator,name=iPhone 17" build
    ```
+5. 真机调试（iPhone 需开启开发者模式：设置 → 隐私与安全性 → 开发者模式；首次连接在手机上点「信任」）：
+   ```bash
+   xcrun devicectl list devices   # 拿到设备 Identifier
+   xcodebuild -project What2REG@UM.xcodeproj -scheme What2REG@UM \
+     -destination "platform=iOS,id=<设备ID>" -allowProvisioningUpdates build
+   xcrun devicectl device install app --device <设备ID> \
+     <DerivedData 路径>/Build/Products/Debug-iphoneos/What2REG@UM.app
+   ```
+   真机上的 `APIConfig` 自动使用 `https://umeh.top/api`（真机无法访问 Mac 的 localhost），无需改代码。
 
 ## 6. iOS 专用 API 认证（HMAC-SHA256 时间戳签名）
 
@@ -92,9 +102,9 @@ API 基址：`APIConfig.baseURL`（DEBUG 为 `http://localhost:3000/api`，Relea
 - 服务端实现：next-web `lib/ios-auth.ts` 的 `verifyIOSRequest()`；签名比对用 `crypto.timingSafeEqual` 防时序攻击；
   时间戳与服务器偏差超过 5 秒返回 401。
 - 密钥管理：
-  - 服务端：`UM_IOS_API_SECRET` 写入 `.env.local`（gitignore；`.env.example` 仅空占位）
-  - iOS：`Secrets/UMSecrets.local`（gitignore）→ 构建脚本注入 → `GeneratedSecrets.swift`（gitignore），
-    仓库中只提交占位文件 `Secrets/UMSecrets.example`
+  - 服务端：`UM_IOS_API_SECRET` 写入 `.env.local`（本地联调）/ 平台环境变量（生产，gitignore；`.env.example` 仅空占位）
+  - iOS：构建脚本按目标自动选择 —— 模拟器用 `Secrets/UMSecrets.local`（本地联调密钥），
+    真机用 `Secrets/UMSecrets.production.local`（生产密钥）；两者均 gitignore，仓库只提交占位 `Secrets/UMSecrets.example`
 - 开放接口：`POST /comment`、`POST /reply`、`POST /vote` 与 Web 端共用，保持不加密钥校验。
 
 > 安全边界说明：客户端密钥可通过逆向二进制提取，此方案的目标是阻止浏览器/第三方直接调用接口，
@@ -103,8 +113,8 @@ API 基址：`APIConfig.baseURL`（DEBUG 为 `http://localhost:3000/api`，Relea
 ## 7. 线上部署
 
 1. 将 next-web 部署到 https://umeh.top（Vercel 或 Cloudflare Workers，见 next-web README）。
-2. iOS 以 Release 配置打包（`APIConfig` 自动切换为 `https://umeh.top/api`）。
-3. App 使用 HTTP 明文请求仅限 DEBUG 本地联调；Release 走 HTTPS，符合 ATS 要求。
+2. iOS 以 Release 配置打包；`APIConfig` 按模拟器/真机自动切换基址（真机一律 `https://umeh.top/api`）。
+3. App 使用 HTTP 明文请求仅限模拟器本地联调；真机走 HTTPS，符合 ATS 要求。
 
 ## 8. 目录结构
 

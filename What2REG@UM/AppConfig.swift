@@ -10,11 +10,11 @@
 import Foundation
 
 /// API 基址配置
-/// - 本地开发：http://localhost:3000/api（next-web dev server）
-/// - 线上环境：https://umeh.top/api
+/// - 模拟器：http://localhost:3000/api（Mac 上的 next-web dev server）
+/// - 真机（调试与 Release 一致）：https://umeh.top/api（真机无法访问 Mac 的 localhost）
 /// 说明：next-web 已为 iOS 补充只读 GET 接口，见 next-web/docs/ios-api-research.md
 enum APIConfig {
-    #if DEBUG
+    #if targetEnvironment(simulator)
     static let baseURL = "http://localhost:3000/api"
     #else
     static let baseURL = "https://umeh.top/api"

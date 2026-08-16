@@ -11,4 +11,5 @@ build/
 .DS_Store
 # API 签名密钥(不入库)
 Secrets/UMSecrets.local
+Secrets/UMSecrets.production.local
 What2REG@UM/GeneratedSecrets.swift
