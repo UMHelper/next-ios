@@ -131,32 +131,51 @@ struct CourseDetailView: View {
                 }
                 .font(.footnote)
 
-                HStack(spacing: 14) {
-                    Button {
-                        showCourseDetail = true
-                    } label: {
-                        Label("Course Description", systemImage: "doc.text.magnifyingglass")
-                            .font(.caption.weight(.medium))
-                            .foregroundStyle(.blue)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            .glassEffect(.regular.interactive())
-                            .clipShape(Capsule())
-                    }
-                    .buttonStyle(.plain)
+                Divider().opacity(0.4)
 
-                    Spacer()
+                // 两个可点的信息行(与 Web 端两个 Dialog 入口对应)
+                detailRow(
+                    icon: "doc.text",
+                    title: "Course Description",
+                    action: { showCourseDetail = true }
+                )
+                Divider().opacity(0.3)
+                detailRow(
+                    icon: "checklist",
+                    title: "Intended Learning Outcomes",
+                    action: { showCourseDetail = true }
+                )
 
-                    Text("Data Source: reg.um.edu.mo")
-                        .font(.caption2)
-                        .italic()
-                        .foregroundStyle(.tertiary)
-                }
+                Text("Data Source: reg.um.edu.mo")
+                    .font(.caption2)
+                    .italic()
+                    .foregroundStyle(.tertiary)
+                    .padding(.top, 4)
             }
         }
         .sheet(isPresented: $showCourseDetail) {
             courseDetailSheet(course)
         }
+    }
+
+    private func detailRow(icon: String, title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.footnote)
+                    .foregroundStyle(.blue)
+                Text(title)
+                    .font(.subheadline)
+                    .foregroundStyle(.primary)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.vertical, 9)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func fieldColumn(_ title: String, _ value: String) -> some View {
@@ -169,44 +188,56 @@ struct CourseDetailView: View {
         }
     }
 
-    // MARK: 课程描述 / ILO 弹层
+    // MARK: 课程描述 / ILO 弹层(磨砂卡片,清爽排版)
     private func courseDetailSheet(_ course: Course) -> some View {
-        ZStack {
-            LiquidBackground()
-            ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("Course Detail")
-                        .font(.title2.weight(.bold))
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                // 课程描述
+                sheetSection(
+                    icon: "doc.text.fill",
+                    title: "Course Description",
+                    text: course.courseDescription?.isEmpty == false ? course.courseDescription! : "No Course Description"
+                )
 
-                    GlassCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Course Description").bold()
-                            Text(course.courseDescription?.isEmpty == false ? course.courseDescription! : "No Course Description")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                Divider()
 
-                    GlassCard {
-                        VStack(alignment: .leading, spacing: 12) {
-                            Text("Intended Learning Outcomes").bold()
-                            Text(course.ilo?.isEmpty == false ? course.ilo! : "No Intended Learning Outcomes")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
+                // 预期学习成果
+                sheetSection(
+                    icon: "checklist",
+                    title: "Intended Learning Outcomes",
+                    text: course.ilo?.isEmpty == false ? course.ilo! : "No Intended Learning Outcomes"
+                )
 
-                    Text("Data Source: reg.um.edu.mo")
-                        .font(.caption2)
-                        .italic()
-                        .foregroundStyle(.tertiary)
-                }
-                .padding(24)
+                Text("Data Source: reg.um.edu.mo")
+                    .font(.caption2)
+                    .italic()
+                    .foregroundStyle(.tertiary)
             }
+            .padding(.horizontal, 22)
+            .padding(.top, 24)
+            .padding(.bottom, 28)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .presentationBackground(.clear)
+        .presentationBackground(.thinMaterial)
+    }
+
+    private func sheetSection(icon: String, title: String, text: String) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 8) {
+                Image(systemName: icon)
+                    .font(.subheadline)
+                    .foregroundStyle(.blue)
+                Text(title)
+                    .font(.headline)
+            }
+            Text(text)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .lineSpacing(5)
+                .textSelection(.enabled)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
