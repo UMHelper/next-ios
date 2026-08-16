@@ -121,7 +121,7 @@ struct CatalogView: View {
                     }
                     .padding(.horizontal, 20)
                 } else {
-                    // 列表布局:整行学院卡
+                    // 列表布局:整行学院卡(左右 20pt padding,与网格/其他页面一致)
                     VStack(alignment: .leading, spacing: 14) {
                         ForEach(Self.faculties, id: \.self) { unit in
                             Button {
@@ -142,6 +142,7 @@ struct CatalogView: View {
                         }
                         .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 20)
                 }
             }
             .padding(.top, 8)
