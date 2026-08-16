@@ -38,13 +38,14 @@ struct CourseRow: View {
                             .lineLimit(1)
                     }
 
-                    // 图标胶囊信息(替代纯文本列,更直观;按内容自然宽度排列,不挤压)
-                    HStack(spacing: 8) {
-                        infoChip("graduationcap.fill", (course.Credits ?? "N/A") + " cr")
-                        infoChip("building.2.fill", course.Offering_Department ?? "N/A")
-                        infoChip("building.columns.fill", course.Offering_Unit ?? "N/A")
-                        infoChip("globe", course.Medium_of_Instruction ?? "N/A")
-                        Spacer(minLength: 0)
+                    // 信息区:与课程页一致的四列网格(中性图标+标签在上,值在下,左右对齐)
+                    Grid(horizontalSpacing: 12, verticalSpacing: 6) {
+                        GridRow {
+                            infoColumn("graduationcap.fill", "Credits", (course.Credits ?? "N/A") + " cr")
+                            infoColumn("building.2.fill", "Dept.", course.Offering_Department ?? "N/A")
+                            infoColumn("building.columns.fill", "Faculty", course.Offering_Unit ?? "N/A")
+                            infoColumn("globe", "Language", course.Medium_of_Instruction ?? "N/A")
+                        }
                     }
                 }
             }
@@ -52,15 +53,22 @@ struct CourseRow: View {
         .buttonStyle(.plain)
     }
 
-    private func infoChip(_ icon: String, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.system(size: 10, weight: .semibold))
-                .foregroundStyle(.blue)
-            Text(text)
-                .font(.system(size: 11, weight: .medium))
+    @ViewBuilder
+    private func infoColumn(_ icon: String, _ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: 3) {
+                Image(systemName: icon)
+                    .font(.system(size: 8, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
+            Text(value)
+                .font(.caption)
                 .lineLimit(1)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
@@ -82,7 +90,7 @@ struct ProfRow: View {
                 HStack(spacing: 10) {
                     Image(systemName: "person.crop.circle.fill")
                         .font(.title3)
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(.secondary)
                     Text(prof.prof_name)
                         .font(.headline)
                 }
