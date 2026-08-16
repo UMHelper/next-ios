@@ -64,6 +64,7 @@ struct CourseDetailView: View {
                     }
                 } else {
                     SectionHeader(title: "Instructors", subtitle: "\(data.profList.count) professor\(data.profList.count == 1 ? "" : "s")")
+                        .padding(.horizontal, 16)
 
                     ForEach(data.profList) { prof in
                         NavigationLink(value: Route.review(code, prof: prof.prof_id)) {

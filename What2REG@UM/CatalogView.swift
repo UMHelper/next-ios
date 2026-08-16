@@ -48,6 +48,7 @@ struct CatalogView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 SectionHeader(title: "Faculties")
+                    .padding(.horizontal, 16)
                 ForEach(Self.faculties, id: \.self) { unit in
                     Button {
                         open(unit: unit)
@@ -58,6 +59,7 @@ struct CatalogView: View {
                 }
 
                 SectionHeader(title: "GE Course")
+                    .padding(.horizontal, 16)
                     .padding(.top, 8)
                 Button {
                     open(unit: "gecourse")

@@ -35,6 +35,7 @@ struct ProfessorView: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 14) {
                         SectionHeader(title: "Courses", subtitle: "\(courses.count) course\(courses.count == 1 ? "" : "s")")
+                            .padding(.horizontal, 16)
                         ForEach(courses) { prof in
                             NavigationLink(value: Route.review(prof.course_id, prof: prof.prof_id)) {
                                 ProfCourseCard(prof: prof)

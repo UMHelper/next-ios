@@ -415,6 +415,7 @@ struct ReviewView: View {
         let topLevel = data.comments.filter { $0.replyto == nil }
         return VStack(alignment: .leading, spacing: 14) {
             SectionHeader(title: "Reviews", subtitle: "\(data.prof.comments) comment\(data.prof.comments == 1 ? "" : "s")")
+                .padding(.horizontal, 16)
 
             if topLevel.isEmpty {
                 GlassCard {
