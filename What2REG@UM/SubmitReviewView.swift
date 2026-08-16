@@ -50,6 +50,7 @@ struct SubmitReviewView: View {
 
     @State private var isSubmitting = false
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var scheme
 
     private static let recommendLabels = ["None", "Never!", "Better not", "Alright", "Recommend", "Completely"]
     private static let gradeLabels = ["None", "F", "D", "C", "B", "A"]
@@ -126,7 +127,7 @@ struct SubmitReviewView: View {
                                 .foregroundStyle(.tertiary)
                         }
 
-                        // 提交(中性玻璃 + 蓝字,无色块;与评价页 Submit Review 按钮一致)
+                        // 提交按钮:描边玻璃胶囊 + 上箭头 + 蓝字(主操作,无色块)
                         Button {
                             submit()
                         } label: {
@@ -135,15 +136,25 @@ struct SubmitReviewView: View {
                                     ProgressView()
                                         .controlSize(.small)
                                         .tint(.blue)
+                                } else {
+                                    Image(systemName: "arrow.up")
+                                        .font(.system(size: 12, weight: .bold))
                                 }
-                                Text(isSubmitting ? "Submitting..." : "Submit")
+                                Text(isSubmitting ? "Submitting..." : "Submit Review")
                                     .font(.footnote.weight(.semibold))
-                                    .foregroundStyle(.blue)
                             }
+                            .foregroundStyle(.blue)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 9)
+                            .padding(.vertical, 11)
                             .glassEffect(.regular.interactive())
                             .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(
+                                        scheme == .dark ? Color.white.opacity(0.25) : Color.white.opacity(0.70),
+                                        lineWidth: 1
+                                    )
+                            )
                         }
                         .buttonStyle(.plain)
                         .disabled(!isFormValid || isSubmitting)

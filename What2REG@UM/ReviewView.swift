@@ -106,6 +106,7 @@ struct ReviewView: View {
     let code: String
     let prof: String
 
+    @Environment(\.colorScheme) private var scheme
     @State private var data: ReviewPageData?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -285,13 +286,24 @@ struct ReviewView: View {
                     NavigationLink {
                         SubmitReviewView(code: code, prof: prof)
                     } label: {
-                        Text("Submit Review")
-                            .font(.footnote.weight(.semibold))
-                            .foregroundStyle(.blue)
-                            .padding(.horizontal, 14)
-                            .padding(.vertical, 7)
-                            .glassEffect(.regular.interactive())
-                            .clipShape(Capsule())
+                        HStack(spacing: 6) {
+                            Image(systemName: "arrow.up")
+                                .font(.system(size: 11, weight: .bold))
+                            Text("Submit Review")
+                                .font(.footnote.weight(.semibold))
+                        }
+                        .foregroundStyle(.blue)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .glassEffect(.regular.interactive())
+                        .clipShape(Capsule())
+                        .overlay(
+                            Capsule()
+                                .strokeBorder(
+                                    scheme == .dark ? Color.white.opacity(0.25) : Color.white.opacity(0.70),
+                                    lineWidth: 1
+                                )
+                        )
                     }
                     .buttonStyle(.plain)
 
