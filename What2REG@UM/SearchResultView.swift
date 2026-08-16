@@ -224,24 +224,28 @@ struct SearchResultView: View {
     }
 
     private var resultList: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                if currentMode == "course" {
-                    filterBar
-                }
-                if currentMode == "course" {
-                    ForEach(filteredCourses) { course in
-                        CourseRow(course: course)
-                    }
-                } else {
-                    ForEach(profs, id: \.prof_name) { prof in
-                        ProfRow(prof: prof)
-                    }
-                }
+        VStack(spacing: 0) {
+            // 筛选栏独立全宽滚动,不被外层 padding 裁剪
+            if currentMode == "course" {
+                filterBar
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 96)
+
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    if currentMode == "course" {
+                        ForEach(filteredCourses) { course in
+                            CourseRow(course: course)
+                        }
+                    } else {
+                        ForEach(profs, id: \.prof_name) { prof in
+                            ProfRow(prof: prof)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 96)
+            }
         }
     }
 
@@ -291,6 +295,8 @@ struct SearchResultView: View {
                         }
                     }
                 }
+                // 首芯片与卡片文字左对齐(20pt 限位),右侧无 padding 可滚到屏幕边缘
+                .padding(.leading, 20)
                 .padding(.vertical, 4)
             }
         }
