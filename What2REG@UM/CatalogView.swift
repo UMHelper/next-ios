@@ -79,6 +79,10 @@ struct CatalogView: View {
                         .font(.headline)
                 }
             }
+            // 列表/卡片切换按钮:与菜单按钮齐平(学院页与课程页均显示)
+            ToolbarItem(placement: .topBarTrailing) {
+                layoutToggle
+            }
         }
     }
 
@@ -87,13 +91,8 @@ struct CatalogView: View {
     private var facultyList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                // 标题 + 布局切换(同一行,切换按钮右对齐)
-                HStack {
-                    SectionHeader(title: "Faculties")
-                    Spacer()
-                    layoutToggle
-                }
-                .padding(.horizontal, 16)
+                SectionHeader(title: "Faculties")
+                    .padding(.horizontal, 16)
 
                 if layout == .grid {
                     // 卡片布局:两列紧凑学院卡(GE 一并入网格)
@@ -212,31 +211,24 @@ struct CatalogView: View {
     private var courseList: some View {
         VStack(alignment: .leading, spacing: 10) {
             // 系别筛选胶囊
-            HStack(spacing: 10) {
-                let options = deptOptions
-                if !options.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            chip("All", selected: selectedDept == nil) {
-                                selectedDept = nil
+            let options = deptOptions
+            if !options.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        chip("All", selected: selectedDept == nil) {
+                            selectedDept = nil
+                            Task { await load() }
+                        }
+                        ForEach(options, id: \.self) { dept in
+                            chip(dept, selected: selectedDept == dept) {
+                                selectedDept = dept
                                 Task { await load() }
-                            }
-                            ForEach(options, id: \.self) { dept in
-                                chip(dept, selected: selectedDept == dept) {
-                                    selectedDept = dept
-                                    Task { await load() }
-                                }
                             }
                         }
                     }
-                } else {
-                    Spacer(minLength: 0)
+                    .padding(.horizontal, 20)
                 }
-
-                layoutToggle
             }
-            .padding(.horizontal, 20)
-            .padding(.top, 4)
 
             if isLoading {
                 ProgressView("Loading...")
@@ -303,11 +295,11 @@ struct CatalogView: View {
         }
     }
 
-    /// 布局切换图标(与搜索栏模式切换同款:玻璃 + 匹配几何形变)
+    /// 布局切换图标(玻璃 + 匹配几何形变,尺寸适配工具栏与菜单按钮齐平)
     private func layoutIcon(_ mode: CatalogLayout, systemName: String, isActive: Bool) -> some View {
         Image(systemName: systemName)
-            .frame(width: 52.0, height: 52.0)
-            .bold()
+            .font(.system(size: 15, weight: .semibold))
+            .frame(width: 32.0, height: 32.0)
             .foregroundStyle(isActive ? .primary : .secondary)
             .glassEffect()
             .glassEffectID(mode.rawValue, in: layoutNamespace)
