@@ -42,13 +42,15 @@ struct RootView: View {
                         route.destination
                     }
                     .toolbar {
+                        // 系统标准工具栏按钮:iOS 26 自动渲染玻璃圆形外壳与按压动画,避免双层外壳
                         ToolbarItem(placement: .topBarLeading) {
-                            GlassIconButton(systemName: "line.3.horizontal") {
+                            Button {
                                 withAnimation(.spring(duration: 0.35)) {
                                     isSidebarOpen = true
                                 }
+                            } label: {
+                                Image(systemName: "line.3.horizontal")
                             }
-                            .scaleEffect(0.92)
                         }
                     }
                     .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
