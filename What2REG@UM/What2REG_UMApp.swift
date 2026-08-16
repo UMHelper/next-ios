@@ -59,8 +59,8 @@ struct RootView: View {
                     path = []
                 }
 
-                // 底部常驻搜索栏(真实布局,占据自己的安全区高度)
-                BottomSearchBar(autoFocus: selection == .home) { mode, keyword in
+                // 底部常驻搜索栏(真实布局,占据自己的安全区高度;不自动聚焦,避免键盘弹出遮屏)
+                BottomSearchBar { mode, keyword in
                     path.append(.search(mode: mode, keyword: keyword))
                 }
             }

@@ -151,8 +151,6 @@ struct SidebarMenu: View {
 
 struct BottomSearchBar: View {
     let onSubmit: (String, String) -> Void
-    // 是否在出现时自动聚焦并打开键盘(与原始设计一致,仅首页使用)
-    var autoFocus: Bool = false
 
     @State private var keyword = ""
     @State private var mode = "course"
@@ -193,7 +191,6 @@ struct BottomSearchBar: View {
                             TextField(mode == "course" ? "Search Course" : "Search Prof", text: $keyword)
                                 .padding()
                                 .focused($isFocused)
-                                .defaultFocus($isFocused, autoFocus)
                                 .offset(x: -16.0, y: 0.0)
                                 .textInputAutocapitalization(.characters)
                                 .keyboardType(.asciiCapable)
@@ -242,14 +239,11 @@ struct BottomSearchBar: View {
                 .padding(.vertical)
                 .onAppear {
                     keyword = ""
-                    if autoFocus {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                            isFocused = true
-                        }
-                    }
                 }
             }
         }
+        // 固定为内容高度,避免 Spacer 在 VStack 布局中无限扩张占据屏幕下半部
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func modeIcon(_ mode: String, systemName: String, isActive: Bool) -> some View {
