@@ -194,6 +194,7 @@ struct ReviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header(data)
+                scoreRowCard(data)
                 commentsSection
                 loadMoreSentinel
             }
@@ -214,7 +215,7 @@ struct ReviewView: View {
         }
     }
 
-    // MARK: 头部(课程信息 + 教授 + 评分整合一张卡片,参考课程页/搜索页设计)
+    // MARK: 头部卡片(课程信息 + 教授名 + 操作行)
     private func header(_ data: ReviewPageData) -> some View {
         GlassCard(cornerRadius: 26, padding: 18) {
             VStack(alignment: .leading, spacing: 10) {
@@ -238,7 +239,6 @@ struct ReviewView: View {
                                 .foregroundStyle(.secondary)
                                 .lineLimit(1)
                         }
-
                     }
 
                     Spacer()
@@ -264,27 +264,7 @@ struct ReviewView: View {
 
                 Divider().opacity(0.4)
 
-                // 五行评分:标签在上,彩色分数在下(无进度条,与其他信息列统一)
-                Grid(horizontalSpacing: 8) {
-                    GridRow {
-                        ScoreColumn(title: "Overall", value: data.prof.result)
-                        ScoreColumn(title: "Grade", value: data.prof.grade)
-                        ScoreColumn(title: "Difficulty", value: data.prof.hard)
-                        ScoreColumn(title: "Usefulness", value: data.prof.reward)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Comments")
-                                .font(.system(size: 10))
-                                .foregroundStyle(.tertiary)
-                            Text(String(data.prof.comments))
-                                .font(.subheadline.weight(.bold))
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
-
-                Divider().opacity(0.4)
-
-                // 操作行:提交评价 / 时间表(整行,箭头右对齐,与详情行同构)
+                // 操作行:提交评价 / 时间表(位于教师名字下方)
                 NavigationLink {
                     SubmitReviewView(code: code, prof: prof)
                 } label: {
@@ -318,6 +298,28 @@ struct ReviewView: View {
                         .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+
+    // MARK: 评分卡片(具体分数,位于头部卡片下方)
+    private func scoreRowCard(_ data: ReviewPageData) -> some View {
+        GlassCard(padding: 16) {
+            Grid(horizontalSpacing: 8) {
+                GridRow {
+                    ScoreColumn(title: "Overall", value: data.prof.result)
+                    ScoreColumn(title: "Grade", value: data.prof.grade)
+                    ScoreColumn(title: "Difficulty", value: data.prof.hard)
+                    ScoreColumn(title: "Usefulness", value: data.prof.reward)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Comments")
+                            .font(.system(size: 10))
+                            .foregroundStyle(.tertiary)
+                        Text(String(data.prof.comments))
+                            .font(.subheadline.weight(.bold))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
