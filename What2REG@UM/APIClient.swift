@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import CryptoKit
 
 /// 网络层错误
 enum APIError: LocalizedError {
@@ -35,7 +36,12 @@ enum APIClient {
 
     static func get<T: Decodable>(_ path: String, query: [String: String] = [:]) async throws -> T {
         guard let url = APIConfig.url(path, query: query) else { throw APIError.badURL }
-        let (data, response) = try await URLSession.shared.data(from: url)
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        for (key, value) in signedHeaders(for: url, method: "GET") {
+            request.setValue(value, forHTTPHeaderField: key)
+        }
+        let (data, response) = try await URLSession.shared.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIError.badResponse(-1) }
         guard 200..<300 ~= http.statusCode else { throw APIError.badResponse(http.statusCode) }
         do {
@@ -47,6 +53,22 @@ enum APIClient {
         } catch {
             throw APIError.decoding(String(describing: error))
         }
+    }
+
+    // MARK: iOS 专用 API 认证签名(2FA 思路:共享密钥 + 时间戳窗口)
+
+    /// 生成认证请求头:X-UM-Timestamp + X-UM-Signature(HMAC-SHA256)
+    static func signedHeaders(for url: URL, method: String) -> [String: String] {
+        let timestamp = String(Int(Date().timeIntervalSince1970))
+        // 与服务端一致:HMAC-SHA256(secret, "METHOD\npathname\ntimestamp")
+        let message = "\(method)\n\(url.path())\n\(timestamp)"
+        let key = SymmetricKey(data: Data(APISecrets.iosAPISecret.utf8))
+        let signature = HMAC<SHA256>.authenticationCode(for: Data(message.utf8), using: key)
+        let hex = signature.map { String(format: "%02x", $0) }.joined()
+        return [
+            "X-UM-Timestamp": timestamp,
+            "X-UM-Signature": hex,
+        ]
     }
 
     // MARK: 课程详情

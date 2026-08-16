@@ -9,3 +9,6 @@ build/
 
 # macOS
 .DS_Store
+# API 签名密钥(不入库)
+Secrets/UMSecrets.local
+What2REG@UM/GeneratedSecrets.swift
