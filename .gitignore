@@ -1,1 +1,11 @@
 Telegram-iOS
+
+# Xcode 用户状态
+xcuserdata/
+*.xcuserstate
+*.xccheckout
+DerivedData/
+build/
+
+# macOS
+.DS_Store
