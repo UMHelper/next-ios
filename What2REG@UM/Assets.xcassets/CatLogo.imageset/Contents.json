@@ -1,7 +1,7 @@
 {
   "images": [
     {
-      "filename": "cat-blue.png",
+      "filename": "cat-blue.svg",
       "idiom": "universal"
     },
     {
@@ -11,12 +11,15 @@
           "value": "dark"
         }
       ],
-      "filename": "cat-white.png",
+      "filename": "cat-white.svg",
       "idiom": "universal"
     }
   ],
   "info": {
     "author": "xcode",
     "version": 1
+  },
+  "properties": {
+    "preserves-vector-representation": true
   }
 }
