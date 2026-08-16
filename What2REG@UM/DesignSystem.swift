@@ -230,13 +230,14 @@ struct SectionHeader: View {
     var subtitle: String? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        HStack(alignment: .firstTextBaseline) {
             Text(title)
                 .font(.footnote.weight(.semibold))
                 .textCase(.uppercase)
                 .kerning(1.2)
                 .foregroundStyle(.secondary)
             if let subtitle {
+                Spacer()
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.tertiary)
