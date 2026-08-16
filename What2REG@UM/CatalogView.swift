@@ -17,6 +17,7 @@ struct CatalogView: View {
     var initialUnit: String? = nil
 
     @Environment(\.openSidebar) private var openSidebar
+    @Environment(\.colorScheme) private var scheme
 
     /// 学院列表与系别（与 Web 端 lib/consant.ts faculty / faculty_dept 一致）
     static let faculties = ["FBA", "FAH", "ICI", "FST", "IAPME", "ICMS", "FSS", "FED", "FLL", "FHS", "IME", "HC", "RC"]
@@ -81,37 +82,103 @@ struct CatalogView: View {
         }
     }
 
-    // MARK: 学院列表
+    // MARK: 学院列表(卡片/列表两种布局,标题行右侧为液态玻璃切换按钮)
+
     private var facultyList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionHeader(title: "Faculties")
-                    .padding(.horizontal, 16)
-                ForEach(Self.faculties, id: \.self) { unit in
-                    Button {
-                        open(unit: unit)
-                    } label: {
-                        facultyCard(unit)
-                    }
-                    .buttonStyle(.plain)
+                // 标题 + 布局切换(同一行,切换按钮右对齐)
+                HStack {
+                    SectionHeader(title: "Faculties")
+                    Spacer()
+                    layoutToggle
                 }
+                .padding(.horizontal, 16)
 
-                SectionHeader(title: "GE Course")
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
-                Button {
-                    open(unit: "gecourse")
-                } label: {
-                    facultyCard("GE Course")
+                if layout == .grid {
+                    // 卡片布局:两列紧凑学院卡(GE 一并入网格)
+                    LazyVGrid(
+                        columns: [
+                            GridItem(.flexible(), spacing: 14),
+                            GridItem(.flexible(), spacing: 14),
+                        ],
+                        spacing: 14
+                    ) {
+                        ForEach(Self.faculties, id: \.self) { unit in
+                            Button {
+                                open(unit: unit)
+                            } label: {
+                                facultyGridCard(unit)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                        Button {
+                            open(unit: "gecourse")
+                        } label: {
+                            facultyGridCard("GE Course")
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.horizontal, 20)
+                } else {
+                    // 列表布局:整行学院卡
+                    VStack(alignment: .leading, spacing: 14) {
+                        ForEach(Self.faculties, id: \.self) { unit in
+                            Button {
+                                open(unit: unit)
+                            } label: {
+                                facultyCard(unit)
+                            }
+                            .buttonStyle(.plain)
+                        }
+
+                        SectionHeader(title: "GE Course")
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
+                        Button {
+                            open(unit: "gecourse")
+                        } label: {
+                            facultyCard("GE Course")
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .buttonStyle(.plain)
             }
-            .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
     }
 
+    /// 紧凑学院卡(卡片布局,参考课程卡实现)
+    private func facultyGridCard(_ unit: String) -> some View {
+        let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
+        return VStack(alignment: .leading, spacing: 8) {
+            Image(systemName: unit == "GE Course" ? "globe.asia.australia.fill" : "building.columns.fill")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundStyle(.blue)
+            Text(unit)
+                .font(.headline)
+            if !depts.isEmpty {
+                Text(depts.joined(separator: " · "))
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, minHeight: 120, alignment: .leading)
+        .glassEffect(in: .rect(cornerRadius: 18))
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .strokeBorder(
+                    scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                    lineWidth: 1
+                )
+        )
+    }
+
+    /// 学院行卡(列表布局)
     private func facultyCard(_ unit: String) -> some View {
         GlassCard(padding: 14) {
             HStack(spacing: 14) {
@@ -143,7 +210,7 @@ struct CatalogView: View {
     // MARK: 课程列表(卡片/列表两种布局,切换按钮与系别筛选同行,参照搜索栏)
     private var courseList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 系别筛选胶囊 + 布局切换(同行,切换按钮右侧固定)
+            // 系别筛选胶囊
             HStack(spacing: 10) {
                 let options = deptOptions
                 if !options.isEmpty {
