@@ -78,7 +78,7 @@ struct CatalogView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-            .padding(.bottom, 20)
+            .padding(.bottom, 96)
         }
     }
 
@@ -184,7 +184,7 @@ struct CatalogView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 4)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 96)
                     } else {
                         // 列表布局:整行课程卡
                         LazyVStack(alignment: .leading, spacing: 14) {
@@ -194,7 +194,7 @@ struct CatalogView: View {
                         }
                         .padding(.horizontal, 20)
                         .padding(.top, 4)
-                        .padding(.bottom, 20)
+                        .padding(.bottom, 96)
                     }
                 }
             }

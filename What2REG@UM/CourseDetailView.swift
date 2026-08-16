@@ -76,7 +76,7 @@ struct CourseDetailView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
-            .padding(.bottom, 20)
+            .padding(.bottom, 96)
         }
     }
 
