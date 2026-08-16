@@ -13,6 +13,7 @@ import SwiftUI
 struct CommentView: View {
     let comment: Comment
     let replies: [Comment]
+    @Environment(\.colorScheme) private var scheme
 
     /// 与 Web 端 REACTION_EMOJI_LIST 一致
     static let allEmojis = ["👍", "👎", "🤣", "💩", "❤️️"]
@@ -42,10 +43,10 @@ struct CommentView: View {
                         .foregroundStyle(.secondary)
                 }
 
-                // 评论内容(柔和深灰 + 行距,避免大段纯黑文字显得沉闷)
+                // 评论内容:浅色模式用柔和灰避免沉闷;深色模式用纯白保证可读性
                 Text(comment.content)
                     .font(.subheadline)
-                    .foregroundStyle(.primary.opacity(0.78))
+                    .foregroundStyle(scheme == .dark ? Color.primary : Color.primary.opacity(0.78))
                     .lineSpacing(4)
                     .textSelection(.enabled)
 
