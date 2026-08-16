@@ -17,17 +17,13 @@ struct CourseRow: View {
             GlassCard(padding: 16) {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
-                        // 课程代码(圆角渐变徽章,视觉锚点)
+                        // 课程代码(实色圆角徽章,视觉锚点)
                         Text(course.New_code)
                             .font(.subheadline.weight(.heavy))
                             .padding(.horizontal, 10)
                             .padding(.vertical, 5)
                             .foregroundStyle(.white)
-                            .background(
-                                LinearGradient(colors: [.blue, .indigo],
-                                               startPoint: .topLeading, endPoint: .bottomTrailing),
-                                in: RoundedRectangle(cornerRadius: 9)
-                            )
+                            .background(Color.blue, in: RoundedRectangle(cornerRadius: 9))
                         Spacer()
                         if course.Is_Offered == 1 {
                             GlassTag(text: "Offered", tint: .green)
@@ -46,12 +42,13 @@ struct CourseRow: View {
                             .lineLimit(1)
                     }
 
-                    // 图标胶囊信息(替代纯文本列,更直观)
+                    // 图标胶囊信息(替代纯文本列,更直观;按内容自然宽度排列,不挤压)
                     HStack(spacing: 8) {
                         infoChip("graduationcap.fill", (course.Credits ?? "N/A") + " cr")
                         infoChip("building.2.fill", course.Offering_Department ?? "N/A")
                         infoChip("building.columns.fill", course.Offering_Unit ?? "N/A")
                         infoChip("globe", course.Medium_of_Instruction ?? "N/A")
+                        Spacer(minLength: 0)
                     }
                 }
             }
@@ -71,8 +68,6 @@ struct CourseRow: View {
         .padding(.horizontal, 8)
         .padding(.vertical, 5)
         .background(.quaternary.opacity(0.6), in: Capsule())
-        .overlay(Capsule().strokeBorder(.white.opacity(0.35), lineWidth: 0.8))
-        .frame(maxWidth: .infinity)
     }
 }
 

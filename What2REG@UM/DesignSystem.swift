@@ -2,13 +2,13 @@
 //  DesignSystem.swift
 //  What2REG@UM
 //
-//  统一 Liquid Glass 设计系统：动态蓝色颜料混合背景、晶边玻璃卡片、玻璃按钮与标签。
-//  所有页面共用本文件组件，保证特效与画面一致。
+//  统一 Liquid Glass 设计系统：蓝色渐变背景、玻璃卡片、玻璃按钮与标签。
+//  简洁优雅：实色为主、少量渐变，所有页面共用本文件组件保证一致。
 //
 
 import SwiftUI
 
-// MARK: - 动态蓝色颜料混合背景（浅色=浅蓝 / 深色=深蓝，光斑如颜料般交融流动）
+// MARK: - 蓝色背景（浅色=清晰浅蓝渐变 / 深色=深蓝渐变,仅一个柔和光斑轻缓漂移）
 
 struct LiquidBackground: View {
     @Environment(\.colorScheme) private var scheme
@@ -19,80 +19,43 @@ struct LiquidBackground: View {
             let light = scheme == .light
             GeometryReader { geo in
                 ZStack {
-                    // 基底颜料色：浅色=浅蓝 / 深色=深蓝
-                    (light
-                        ? Color(red: 0.84, green: 0.90, blue: 0.98)
-                        : Color(red: 0.03, green: 0.07, blue: 0.18))
-
-                    // 多层颜料团：旋转 + 模糊 + 增亮混合,模拟颜料被搅动交融
-                    paintBlob(
-                        color: .blue,
-                        size: geo.size.width * 1.35,
-                        blur: 110,
-                        opacity: light ? 0.30 : 0.42,
-                        rotation: sin(t / 9.0) * 40,
-                        offset: CGSize(width: sin(t / 6.5) * geo.size.width * 0.14, height: -geo.size.height * 0.20 + cos(t / 7.3) * geo.size.height * 0.08)
-                    )
-                    paintBlob(
-                        color: .indigo,
-                        size: geo.size.width * 1.05,
-                        blur: 105,
-                        opacity: light ? 0.26 : 0.36,
-                        rotation: cos(t / 8.2) * 55,
-                        offset: CGSize(width: cos(t / 7.1) * geo.size.width * 0.17, height: geo.size.height * 0.16 + sin(t / 6.7) * geo.size.height * 0.10)
-                    )
-                    paintBlob(
-                        color: .cyan,
-                        size: geo.size.width * 0.82,
-                        blur: 95,
-                        opacity: light ? 0.24 : 0.30,
-                        rotation: sin(t / 7.6) * 70,
-                        offset: CGSize(width: -geo.size.width * 0.20 + sin(t / 8.0) * geo.size.width * 0.10, height: geo.size.height * 0.30 + cos(t / 7.9) * geo.size.height * 0.09)
-                    )
-                    paintBlob(
-                        color: .teal,
-                        size: geo.size.width * 0.60,
-                        blur: 85,
-                        opacity: light ? 0.20 : 0.26,
-                        rotation: cos(t / 10.3) * 60,
-                        offset: CGSize(width: geo.size.width * 0.22 + cos(t / 9.4) * geo.size.width * 0.09, height: -geo.size.height * 0.30 + sin(t / 8.6) * geo.size.height * 0.10)
-                    )
-
-                    // 顶部环境光
+                    // 清晰可见的蓝色渐变底
                     LinearGradient(
-                        colors: [
-                            (light ? Color.white.opacity(0.30) : Color.blue.opacity(0.10)),
-                            .clear,
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
+                        colors: light
+                            ? [
+                                Color(red: 0.62, green: 0.78, blue: 0.96),
+                                Color(red: 0.80, green: 0.89, blue: 0.99),
+                            ]
+                            : [
+                                Color(red: 0.05, green: 0.13, blue: 0.28),
+                                Color(red: 0.02, green: 0.06, blue: 0.15),
+                            ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-                    .frame(height: geo.size.height * 0.35)
-                    .frame(maxHeight: .infinity, alignment: .top)
+
+                    // 仅一个柔和光斑,缓慢漂移增加生气
+                    Ellipse()
+                        .fill(
+                            light
+                                ? Color.blue.opacity(0.22)
+                                : Color.blue.opacity(0.30),
+                        )
+                        .frame(
+                            width: geo.size.width * 1.1,
+                            height: geo.size.width * 0.8
+                        )
+                        .rotationEffect(.degrees(sin(t / 11.0) * 25))
+                        .blur(radius: 95)
+                        .offset(
+                            x: sin(t / 7.0) * geo.size.width * 0.10,
+                            y: -geo.size.height * 0.18 + cos(t / 8.0) * geo.size.height * 0.06
+                        )
                 }
             }
         }
         .ignoresSafeArea()
         .allowsHitTesting(false)
-    }
-
-    /// 颜料团：椭圆旋转 + 强模糊 + 增亮混合(浅色用 screen,深色用 plusLighter)
-    private func paintBlob(
-        color: Color,
-        size: CGFloat,
-        blur: CGFloat,
-        opacity: Double,
-        rotation: Double,
-        offset: CGSize
-    ) -> some View {
-        Ellipse()
-            .fill(color.opacity(opacity))
-            .frame(width: size, height: size * 0.78)
-            .rotationEffect(.degrees(rotation))
-            .blur(radius: blur)
-            .blendMode(scheme == .light ? .screen : .plusLighter)
-            .offset(offset)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
     }
 }
 
@@ -156,7 +119,7 @@ struct LoopingTypewriterText: View {
     }
 }
 
-// MARK: - 晶边玻璃卡片（统一卡片样式：玻璃 + 渐变描边 + 柔和投影）
+// MARK: - 晶边玻璃卡片（统一卡片样式：玻璃 + 单色细描边 + 柔和投影）
 
 struct GlassCard<Content: View>: View {
     var cornerRadius: CGFloat = 24
@@ -173,19 +136,13 @@ struct GlassCard<Content: View>: View {
             .shadow(color: .black.opacity(scheme == .dark ? 0.30 : 0.10), radius: 20, x: 0, y: 10)
     }
 
-    /// 晶体边缘：左上高光 → 右下淡蓝收边（浅色/深色各自适配）
+    /// 细描边:浅色/深色各自适配的单色高光边
     @ViewBuilder
     private func cardBorder(_ radius: CGFloat) -> some View {
         RoundedRectangle(cornerRadius: radius)
             .strokeBorder(
-                LinearGradient(
-                    colors: scheme == .dark
-                        ? [.white.opacity(0.42), .white.opacity(0.10), .white.opacity(0.04), .blue.opacity(0.28)]
-                        : [.white.opacity(0.95), .white.opacity(0.35), .black.opacity(0.06), .blue.opacity(0.22)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                ),
-                lineWidth: 1.1
+                scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                lineWidth: 1.0
             )
     }
 }
@@ -257,7 +214,7 @@ struct SectionHeader: View {
     }
 }
 
-// MARK: - 渐变描边胶囊按钮（主操作）
+// MARK: - 玻璃主操作按钮
 
 struct GlassActionButton: View {
     let title: String
@@ -282,10 +239,6 @@ struct GlassActionButton: View {
             .foregroundStyle(.white)
             .glassEffect(.regular.tint(tint).interactive())
             .clipShape(RoundedRectangle(cornerRadius: 18))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .strokeBorder(.white.opacity(0.35), lineWidth: 1)
-            )
         }
         .buttonStyle(.plain)
         .disabled(disabled || isLoading)

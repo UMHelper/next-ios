@@ -19,7 +19,7 @@ struct NonInteractiveStarView: View {
                     .font(.footnote)
             }
         }
-        .foregroundStyle(rating.bgGradient)
+        .foregroundStyle(rating.bgColor)
     }
 
     private func starType(for number: Double) -> String {
@@ -51,7 +51,7 @@ struct ScoreChip: View {
                     .font(.caption)
                     .bold()
             }
-            .foregroundStyle(value.bgGradient)
+            .foregroundStyle(value.bgColor)
         }
     }
 }
@@ -69,7 +69,7 @@ struct ScoreGauge: View {
                 Text(value, format: .number.precision(.fractionLength(1)))
             }
             .gaugeStyle(.accessoryCircular)
-            .tint(value.bgGradient)
+            .tint(value.bgColor)
 
             Text(title)
                 .font(.footnote)
@@ -95,11 +95,11 @@ struct RatingBar: View {
                     .font(.system(size: 10, weight: .heavy))
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(value.bgGradient, in: Capsule())
+                    .background(value.bgColor, in: Capsule())
                     .foregroundStyle(.white)
             }
             ProgressView(value: min(max(value, 0), 5), total: 5)
-                .tint(AnyShapeStyle(value.bgGradient))
+                .tint(value.bgColor)
         }
     }
 }
@@ -123,7 +123,7 @@ struct ProfRatingCard: View {
                     }
                 }
                 .gaugeStyle(.accessoryCircular)
-                .tint(prof.result.bgGradient)
+                .tint(prof.result.bgColor)
                 .scaleEffect(1.25)
                 Text("Overall")
                     .font(.caption)
@@ -131,7 +131,7 @@ struct ProfRatingCard: View {
             }
 
             // 三条评分条
-            VStack(spacing: 12) {
+            VStack(spacing: 14) {
                 RatingBar(title: "Grade", value: prof.grade)
                 RatingBar(title: "Difficulty", value: prof.hard)
                 RatingBar(title: "Usefulness", value: prof.reward)

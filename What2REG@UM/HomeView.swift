@@ -21,5 +21,6 @@ struct HomeView: View {
                 .foregroundStyle(.primary)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 }

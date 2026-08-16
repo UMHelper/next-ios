@@ -88,13 +88,7 @@ struct CourseDetailView: View {
                     VStack(alignment: .leading, spacing: 5) {
                         Text(course.courseCode)
                             .font(.system(.title, design: .rounded, weight: .bold))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.blue, .indigo],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                            .foregroundStyle(.primary)
 
                         Text(course.courseTitle)
                             .font(.headline)
@@ -247,10 +241,10 @@ struct ProfListItemView: View {
                                 .font(.subheadline.weight(.heavy))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(prof.result.bgGradient, in: Capsule())
+                                .background(prof.result.bgColor, in: Capsule())
                                 .foregroundStyle(.white)
                         }
-                        .foregroundStyle(prof.result.bgGradient)
+                        .foregroundStyle(prof.result.bgColor)
                     }
 
                     Spacer()
@@ -266,32 +260,16 @@ struct ProfListItemView: View {
 
                 Divider().opacity(0.4)
 
-                // 三项迷你评分条
-                HStack(spacing: 14) {
-                    miniBar("Grade", prof.grade)
-                    miniBar("Difficulty", prof.hard)
-                    miniBar("Useful", prof.reward)
+                // 三项评分条(整宽,宽松排列)
+                VStack(spacing: 12) {
+                    RatingBar(title: "Grade", value: prof.grade)
+                    RatingBar(title: "Difficulty", value: prof.hard)
+                    RatingBar(title: "Usefulness", value: prof.reward)
                 }
             }
         }
     }
 
-    private func miniBar(_ title: String, _ value: Double) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 4) {
-                Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                    Spacer(minLength: 0)
-                Text(value.gpaLetter)
-                    .font(.system(size: 9, weight: .heavy))
-                    .foregroundStyle(value.bgGradient)
-            }
-            ProgressView(value: min(max(value, 0), 5), total: 5)
-                .tint(AnyShapeStyle(value.bgGradient))
-        }
-        .frame(maxWidth: .infinity)
-    }
 }
 
 #Preview {

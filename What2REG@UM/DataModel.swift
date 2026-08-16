@@ -190,32 +190,16 @@ extension Double {
         }
     }
 
-    /// 与 Web 端 lib/utils.ts get_bg 一致的分段配色（0 灰 / 低分紫红 / 中分橙 / 高分绿）
-    var bgGradient: LinearGradient {
+    /// 与 Web 端 lib/utils.ts get_bg 一致的分段配色（0 灰 / 低分红 / 中分橙 / 高分绿），使用实色而非渐变
+    var bgColor: Color {
         if self >= 3.6 {
-            return LinearGradient(
-                colors: [Color.green, Color.green.opacity(0.7)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            return .green
         } else if self >= 2.3 {
-            return LinearGradient(
-                colors: [Color.orange, Color.yellow],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            return .orange
         } else if self > 0 {
-            return LinearGradient(
-                colors: [Color.pink, Color.purple],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            return .pink
         } else {
-            return LinearGradient(
-                colors: [Color.gray, Color.gray.opacity(0.7)],
-                startPoint: .leading,
-                endPoint: .trailing
-            )
+            return .gray
         }
     }
 }

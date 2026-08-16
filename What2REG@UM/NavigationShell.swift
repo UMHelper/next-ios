@@ -141,14 +141,7 @@ struct SidebarMenu: View {
                 .background(.regularMaterial, in: panelShape)
                 .glassEffect(in: panelShape)
                 .overlay {
-                    panelShape.strokeBorder(
-                        LinearGradient(
-                            colors: [.white.opacity(0.5), .white.opacity(0.1), .blue.opacity(0.25)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1
-                    )
+                    panelShape.strokeBorder(Color.white.opacity(0.28), lineWidth: 1)
                 }
                 .shadow(color: .black.opacity(0.35), radius: 30, x: 8, y: 0)
                 .transition(.move(edge: .leading).combined(with: .opacity))

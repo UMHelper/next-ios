@@ -34,10 +34,10 @@ struct RootView: View {
 
     var body: some View {
         ZStack {
-            LiquidBackground()
-
             NavigationStack(path: $path) {
                 selectedRoot
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(LiquidBackground())
                     .navigationDestination(for: Route.self) { route in
                         route.destination
                     }
@@ -98,18 +98,22 @@ struct Route: Hashable {
 
     @ViewBuilder
     var destination: some View {
-        switch kind {
-        case .course(let code):
-            CourseDetailView(code: code)
-        case .review(let code, let prof):
-            ReviewView(code: code, prof: prof)
-        case .professor(let name):
-            ProfessorView(profName: name)
-        case .search(let mode, let keyword):
-            SearchResultView(initialMode: mode, initialKeyword: keyword)
-        case .catalog(let unit):
-            CatalogView(initialUnit: unit)
+        Group {
+            switch kind {
+            case .course(let code):
+                CourseDetailView(code: code)
+            case .review(let code, let prof):
+                ReviewView(code: code, prof: prof)
+            case .professor(let name):
+                ProfessorView(profName: name)
+            case .search(let mode, let keyword):
+                SearchResultView(initialMode: mode, initialKeyword: keyword)
+            case .catalog(let unit):
+                CatalogView(initialUnit: unit)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(LiquidBackground())
     }
 }
 

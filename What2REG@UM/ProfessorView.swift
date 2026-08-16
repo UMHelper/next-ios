@@ -79,11 +79,7 @@ struct ProfCourseCard: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 5)
                         .foregroundStyle(.white)
-                        .background(
-                            LinearGradient(colors: [.blue, .indigo],
-                                           startPoint: .topLeading, endPoint: .bottomTrailing),
-                            in: RoundedRectangle(cornerRadius: 9)
-                        )
+                        .background(Color.blue, in: RoundedRectangle(cornerRadius: 9))
                     Spacer()
                     if prof.is_offered == 1 {
                         OfferedComView()
@@ -105,10 +101,10 @@ struct ProfCourseCard: View {
                                 .font(.subheadline.weight(.heavy))
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(prof.result.bgGradient, in: Capsule())
+                                .background(prof.result.bgColor, in: Capsule())
                                 .foregroundStyle(.white)
                         }
-                        .foregroundStyle(prof.result.bgGradient)
+                        .foregroundStyle(prof.result.bgColor)
                     }
 
                     Spacer()
@@ -124,30 +120,14 @@ struct ProfCourseCard: View {
 
                 Divider().opacity(0.4)
 
-                // 三项迷你评分条
-                HStack(spacing: 14) {
-                    miniBar("Grade", prof.grade)
-                    miniBar("Easy", prof.hard)
-                    miniBar("Outcome", prof.reward)
+                // 三项评分条(整宽,宽松排列)
+                VStack(spacing: 12) {
+                    RatingBar(title: "Grade", value: prof.grade)
+                    RatingBar(title: "Easy", value: prof.hard)
+                    RatingBar(title: "Outcome", value: prof.reward)
                 }
             }
         }
     }
 
-    private func miniBar(_ title: String, _ value: Double) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 4) {
-                Text(title)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
-                Spacer(minLength: 0)
-                Text(value.gpaLetter)
-                    .font(.system(size: 9, weight: .heavy))
-                    .foregroundStyle(value.bgGradient)
-            }
-            ProgressView(value: min(max(value, 0), 5), total: 5)
-                .tint(AnyShapeStyle(value.bgGradient))
-        }
-        .frame(maxWidth: .infinity)
-    }
 }

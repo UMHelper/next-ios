@@ -16,13 +16,7 @@ struct AboutView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("What2REG @UM")
                             .font(.system(size: 30, weight: .heavy, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [.blue, .indigo, .cyan],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                            .foregroundStyle(.primary)
                         Text("Course review platform for University of Macau")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
