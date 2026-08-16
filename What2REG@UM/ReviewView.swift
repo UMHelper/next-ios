@@ -195,7 +195,6 @@ struct ReviewView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 header(data)
-                scoreRowCard(data)
                 commentsSection
                 loadMoreSentinel
             }
@@ -300,27 +299,25 @@ struct ReviewView: View {
                     }
                     .buttonStyle(.plain)
                 }
-            }
-        }
-    }
 
-    // MARK: 评分卡片(具体分数,位于头部卡片下方)
-    private func scoreRowCard(_ data: ReviewPageData) -> some View {
-        GlassCard(padding: 16) {
-            Grid(horizontalSpacing: 8) {
-                GridRow {
-                    ScoreColumn(title: "Overall", value: data.prof.result)
-                    ScoreColumn(title: "Grade", value: data.prof.grade)
-                    ScoreColumn(title: "Difficulty", value: data.prof.hard)
-                    ScoreColumn(title: "Usefulness", value: data.prof.reward)
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Comments")
-                            .font(.system(size: 10))
-                            .foregroundStyle(.tertiary)
-                        Text(String(data.prof.comments))
-                            .font(.subheadline.weight(.bold))
+                Divider().opacity(0.4)
+
+                // 量化评分:与上方信息同一张卡片(卡片下半部)
+                Grid(horizontalSpacing: 8) {
+                    GridRow {
+                        ScoreColumn(title: "Overall", value: data.prof.result)
+                        ScoreColumn(title: "Grade", value: data.prof.grade)
+                        ScoreColumn(title: "Difficulty", value: data.prof.hard)
+                        ScoreColumn(title: "Usefulness", value: data.prof.reward)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Comments")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.tertiary)
+                            Text(String(data.prof.comments))
+                                .font(.subheadline.weight(.bold))
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
         }
