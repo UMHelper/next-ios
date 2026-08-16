@@ -239,17 +239,6 @@ struct ReviewView: View {
                                 .lineLimit(1)
                         }
 
-                        // 教授名(点击进入教授页)
-                        NavigationLink(value: Route.professor(prof)) {
-                            HStack(spacing: 4) {
-                                Text(data.prof.prof_id)
-                                    .font(.title3.weight(.bold))
-                                Image(systemName: "chevron.right")
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
-                        }
-                        .buttonStyle(.plain)
                     }
 
                     Spacer()
@@ -258,6 +247,20 @@ struct ReviewView: View {
                         OfferedComView()
                     }
                 }
+
+                // 教授名整行(文字左 + 箭头右对齐,与详情行同构)
+                NavigationLink(value: Route.professor(prof)) {
+                    HStack(spacing: 10) {
+                        Text(data.prof.prof_id)
+                            .font(.title3.weight(.bold))
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
 
                 Divider().opacity(0.4)
 
@@ -281,40 +284,41 @@ struct ReviewView: View {
 
                 Divider().opacity(0.4)
 
-                // 操作行:提交评价 / 时间表(纯文字 + 箭头,与详情行同构)
-                HStack(spacing: 24) {
-                    NavigationLink {
-                        SubmitReviewView(code: code, prof: prof)
+                // 操作行:提交评价 / 时间表(整行,箭头右对齐,与详情行同构)
+                NavigationLink {
+                    SubmitReviewView(code: code, prof: prof)
+                } label: {
+                    HStack(spacing: 10) {
+                        Text("Submit Review")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(.blue)
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.caption2.weight(.semibold))
+                            .foregroundStyle(.tertiary)
+                    }
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+
+                if !data.timetable.isEmpty {
+                    Button {
+                        showTimetable = true
                     } label: {
-                        HStack(spacing: 4) {
-                            Text("Submit Review")
+                        HStack(spacing: 10) {
+                            Text("Timetable")
                                 .font(.footnote.weight(.semibold))
-                                .foregroundStyle(.blue)
+                            Spacer()
                             Image(systemName: "chevron.right")
                                 .font(.caption2.weight(.semibold))
                                 .foregroundStyle(.tertiary)
                         }
+                        .padding(.vertical, 6)
+                        .contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-
-                    if !data.timetable.isEmpty {
-                        Button {
-                            showTimetable = true
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text("Timetable")
-                                    .font(.footnote.weight(.semibold))
-                                Image(systemName: "chevron.right")
-                                    .font(.caption2.weight(.semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    Spacer()
                 }
-                .padding(.vertical, 4)
             }
         }
     }

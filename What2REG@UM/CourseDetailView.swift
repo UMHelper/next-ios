@@ -140,7 +140,6 @@ struct CourseDetailView: View {
 
                 // 单个入口行:课程描述与 ILO 在同一张卡片里展示
                 detailRow(
-                    icon: "doc.text",
                     title: "Course Description",
                     action: { showCourseDetail = true }
                 )
@@ -156,12 +155,9 @@ struct CourseDetailView: View {
         }
     }
 
-    private func detailRow(icon: String, title: String, action: @escaping () -> Void) -> some View {
+    private func detailRow(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: 10) {
-                Image(systemName: icon)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
                 Text(title)
                     .font(.footnote)
                     .foregroundStyle(.primary)
