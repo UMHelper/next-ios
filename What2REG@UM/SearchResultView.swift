@@ -106,6 +106,7 @@ struct SearchResultView: View {
     let initialMode: String
     let initialKeyword: String
 
+    @Environment(\.colorScheme) private var scheme
     @State private var currentMode: String
     @State private var searchKeyword: String
 
@@ -242,47 +243,54 @@ struct SearchResultView: View {
         }
     }
 
-    /// 玻璃过滤胶囊
+    /// 过滤胶囊栏:仅展示存在多个选项的维度;中性玻璃样式与整体设计一致
+    @ViewBuilder
     private var filterBar: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(Self.filterKeys, id: \.0) { key, label in
-                    let current = filters[key] ?? "All"
-                    Menu {
-                        Button {
-                            filters[key] = "All"
-                        } label: {
-                            Label("All", systemImage: current == "All" ? "checkmark" : "")
-                        }
-                        ForEach(options(for: key), id: \.self) { value in
+        let visibleKeys = Self.filterKeys.filter { options(for: $0.0).count > 1 }
+        if !visibleKeys.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(visibleKeys, id: \.0) { key, label in
+                        let current = filters[key] ?? "All"
+                        let isActive = current != "All"
+                        Menu {
                             Button {
-                                filters[key] = value
+                                filters[key] = "All"
                             } label: {
-                                Label(value, systemImage: current == value ? "checkmark" : "")
+                                Label("All", systemImage: current == "All" ? "checkmark" : "")
                             }
+                            ForEach(options(for: key), id: \.self) { value in
+                                Button {
+                                    filters[key] = value
+                                } label: {
+                                    Label(value, systemImage: current == value ? "checkmark" : "")
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(isActive ? "\(label): \(current)" : label)
+                                    .font(.caption.weight(isActive ? .semibold : .medium))
+                                    .foregroundStyle(isActive ? .primary : .secondary)
+                                Image(systemName: "chevron.up.chevron.down")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(.tertiary)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 7)
+                            .glassEffect(.regular.interactive())
+                            .clipShape(Capsule())
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(
+                                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                                        lineWidth: 1
+                                    )
+                            )
                         }
-                    } label: {
-                        HStack(spacing: 4) {
-                            Text(current == "All" ? label : "\(label): \(current)")
-                                .font(.caption.weight(.medium))
-                            Image(systemName: "chevron.up.chevron.down")
-                                .font(.system(size: 8, weight: .bold))
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 7)
-                        .glassEffect(.regular.interactive())
-                        .clipShape(Capsule())
-                        .overlay(
-                            Capsule()
-                                .strokeBorder(
-                                    current == "All" ? Color.secondary.opacity(0.25) : Color.blue.opacity(0.5),
-                                    lineWidth: 1
-                                )
-                        )
                     }
                 }
+                .padding(.vertical, 4)
             }
-            .padding(.vertical, 4)
         }
     }
 
