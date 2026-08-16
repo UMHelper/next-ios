@@ -38,13 +38,13 @@ struct CourseRow: View {
                             .lineLimit(1)
                     }
 
-                    // 信息区:与课程页一致的四列网格(中性图标+标签在上,值在下,左右对齐)
+                    // 信息区:与课程页一致的四列网格(标签在上,值在下,左右对齐,无图标无单位)
                     Grid(horizontalSpacing: 12, verticalSpacing: 6) {
                         GridRow {
-                            infoColumn("graduationcap.fill", "Credits", (course.Credits ?? "N/A") + " cr")
-                            infoColumn("building.2.fill", "Dept.", course.Offering_Department ?? "N/A")
-                            infoColumn("building.columns.fill", "Faculty", course.Offering_Unit ?? "N/A")
-                            infoColumn("globe", "Language", course.Medium_of_Instruction ?? "N/A")
+                            infoColumn("Credits", course.Credits ?? "N/A")
+                            infoColumn("Dept.", course.Offering_Department ?? "N/A")
+                            infoColumn("Faculty", course.Offering_Unit ?? "N/A")
+                            infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
                         }
                     }
                 }
@@ -53,17 +53,11 @@ struct CourseRow: View {
         .buttonStyle(.plain)
     }
 
-    @ViewBuilder
-    private func infoColumn(_ icon: String, _ title: String, _ value: String) -> some View {
+    private func infoColumn(_ title: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            HStack(spacing: 3) {
-                Image(systemName: icon)
-                    .font(.system(size: 8, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                Text(title)
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-            }
+            Text(title)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
             Text(value)
                 .font(.caption)
                 .lineLimit(1)
