@@ -55,22 +55,28 @@ struct SidebarMenu: View {
     @Binding var theme: AppTheme
     @Environment(\.colorScheme) private var scheme
     @Namespace private var themeNamespace
+    @State private var themeExpanded = false
 
     private var panelShape: RoundedRectangle {
         RoundedRectangle(cornerRadius: 28)
     }
 
-    /// 主题选择图标(与搜索栏模式切换同款:玻璃 + 匹配几何形变)
+    /// 主题选择图标(与搜索栏模式切换完全同款:52×52 玻璃 + 匹配几何形变,点按展开/切换)
     private func themeIcon(_ mode: AppTheme, systemName: String, isActive: Bool) -> some View {
         Image(systemName: systemName)
-            .frame(width: 44.0, height: 44.0)
+            .frame(width: 52.0, height: 52.0)
             .bold()
             .foregroundStyle(isActive ? .primary : .secondary)
             .glassEffect()
             .glassEffectID(mode.rawValue, in: themeNamespace)
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {
-                    $theme.wrappedValue = mode
+                    if mode == theme {
+                        themeExpanded.toggle()
+                    } else {
+                        $theme.wrappedValue = mode
+                        themeExpanded = false
+                    }
                 }
             }
     }
@@ -136,9 +142,25 @@ struct SidebarMenu: View {
                         SectionHeader(title: "Appearance")
                         GlassEffectContainer {
                             HStack(spacing: 6) {
-                                themeIcon(.system, systemName: "circle.lefthalf.filled", isActive: theme == .system)
-                                themeIcon(.light, systemName: "sun.max.fill", isActive: theme == .light)
-                                themeIcon(.dark, systemName: "moon.fill", isActive: theme == .dark)
+                                if theme == .system {
+                                    themeIcon(.system, systemName: "circle.lefthalf.filled", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.light, systemName: "sun.max", isActive: false)
+                                        themeIcon(.dark, systemName: "moon", isActive: false)
+                                    }
+                                } else if theme == .light {
+                                    themeIcon(.light, systemName: "sun.max.fill", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.dark, systemName: "moon", isActive: false)
+                                    }
+                                } else {
+                                    themeIcon(.dark, systemName: "moon.fill", isActive: true)
+                                    if themeExpanded {
+                                        themeIcon(.system, systemName: "circle.lefthalf", isActive: false)
+                                        themeIcon(.light, systemName: "sun.max", isActive: false)
+                                    }
+                                }
                             }
                             .padding(.horizontal, 5)
                             .padding(.vertical, 5)
