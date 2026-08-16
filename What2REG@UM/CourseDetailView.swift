@@ -52,6 +52,10 @@ struct CourseDetailView: View {
         errorMessage = nil
         do {
             data = try await APIClient.fetchCourse(code: code)
+            // 触发卡片入场动画
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
+                cardsAppeared = true
+            }
         } catch {
             errorMessage = error.localizedDescription
         }
