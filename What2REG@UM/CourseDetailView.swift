@@ -84,7 +84,7 @@ struct CourseDetailView: View {
     private func courseHeader(_ data: CourseInfoWithProfList) -> some View {
         let course = data.course
         return GlassCard(cornerRadius: 26, padding: 18) {
-            VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(course.courseCode)
@@ -120,7 +120,7 @@ struct CourseDetailView: View {
                 Divider().opacity(0.4)
 
                 // 七个信息:四列网格,左右对齐;Duration 跨第 3+4 列避免截断
-                Grid(horizontalSpacing: 12, verticalSpacing: 12) {
+                Grid(horizontalSpacing: 12, verticalSpacing: 8) {
                     GridRow {
                         fieldColumn("Credits", course.credits ?? "N/A")
                         fieldColumn("Dept", course.offeringDept ?? "N/A")
@@ -149,7 +149,6 @@ struct CourseDetailView: View {
                     .font(.caption2)
                     .italic()
                     .foregroundStyle(.tertiary)
-                    .padding(.top, 2)
             }
         }
         .sheet(isPresented: $showCourseDetail) {
@@ -171,7 +170,7 @@ struct CourseDetailView: View {
                     .font(.caption2.weight(.semibold))
                     .foregroundStyle(.tertiary)
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, 6)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
