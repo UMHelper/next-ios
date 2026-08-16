@@ -104,9 +104,6 @@ struct CatalogView: View {
     private var facultyList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                SectionHeader(title: "Faculties")
-                    .padding(.horizontal, 16)
-
                 if layout == .grid {
                     // 卡片布局:两列紧凑学院卡(GE 一并入网格)
                     LazyVGrid(
@@ -116,6 +113,13 @@ struct CatalogView: View {
                         ],
                         spacing: 14
                     ) {
+                        // GE Course 置顶
+                        Button {
+                            open(unit: "gecourse")
+                        } label: {
+                            facultyGridCard("GE Course")
+                        }
+                        .buttonStyle(.plain)
                         ForEach(Self.faculties, id: \.self) { unit in
                             Button {
                                 open(unit: unit)
@@ -124,17 +128,24 @@ struct CatalogView: View {
                             }
                             .buttonStyle(.plain)
                         }
-                        Button {
-                            open(unit: "gecourse")
-                        } label: {
-                            facultyGridCard("GE Course")
-                        }
-                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
                 } else {
-                    // 列表布局:整行学院卡(左右 20pt padding,与网格/其他页面一致)
+                    // 列表布局:GE Course 置顶,学院卡随后(左右 20pt padding)
                     VStack(alignment: .leading, spacing: 14) {
+                        SectionHeader(title: "GE Course")
+                            .padding(.horizontal, 16)
+                        Button {
+                            open(unit: "gecourse")
+                        } label: {
+                            facultyCard("GE Course")
+                        }
+                        .buttonStyle(.plain)
+
+                        SectionHeader(title: "Faculties")
+                            .padding(.horizontal, 16)
+                            .padding(.top, 8)
+
                         ForEach(Self.faculties, id: \.self) { unit in
                             Button {
                                 open(unit: unit)
@@ -143,16 +154,6 @@ struct CatalogView: View {
                             }
                             .buttonStyle(.plain)
                         }
-
-                        SectionHeader(title: "GE Course")
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
-                        Button {
-                            open(unit: "gecourse")
-                        } label: {
-                            facultyCard("GE Course")
-                        }
-                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 20)
                 }
