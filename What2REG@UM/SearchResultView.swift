@@ -228,6 +228,9 @@ struct SearchResultView: View {
         }
                 .navigationTitle(searchKeyword)
         .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: Route.self) { route in
+            route.destination
+        }
         .navigationDestination(item: $directRoute) { route in
             route.destination
         }

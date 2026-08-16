@@ -33,6 +33,9 @@ struct CourseDetailView: View {
             }
         }
                 .navigationBarTitleDisplayMode(.inline)
+        .navigationDestination(for: Route.self) { route in
+            route.destination
+        }
         .toolbar {
             ToolbarItem(placement: .principal) {
                 Text(code)

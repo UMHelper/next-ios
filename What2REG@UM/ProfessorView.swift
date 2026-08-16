@@ -49,7 +49,10 @@ struct ProfessorView: View {
                 }
             }
         }
-                .task {
+                .navigationDestination(for: Route.self) { route in
+            route.destination
+        }
+        .task {
             guard courses.isEmpty else { return }
             await load()
         }

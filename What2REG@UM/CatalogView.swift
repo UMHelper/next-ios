@@ -51,6 +51,9 @@ struct CatalogView: View {
                 open(unit: initialUnit)
             }
         }
+        .navigationDestination(for: Route.self) { route in
+            route.destination
+        }
         .toolbar {
             // 学院列表:菜单按钮;课程列表:返回按钮
             ToolbarItem(placement: .topBarLeading) {
