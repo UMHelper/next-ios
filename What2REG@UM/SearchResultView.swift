@@ -115,6 +115,8 @@ struct SearchResultView: View {
     @State private var isLoading = false
     @State private var errorMessage: String?
     @State private var filters: [String: String] = [:]
+    /// 当前展开选项面板的筛选维度(内联面板,替代系统 Menu)
+    @State private var expandedFilter: String? = nil
 
     init(initialMode: String, initialKeyword: String) {
         self.initialMode = initialMode
@@ -269,82 +271,117 @@ struct SearchResultView: View {
         }
     }
 
-    /// 过滤胶囊栏:仅展示存在多个选项的维度;中性玻璃样式与整体设计一致
+    /// 过滤胶囊栏:仅展示存在多个选项的维度;中性玻璃样式与整体设计一致。
+    /// iOS 26 系统 Menu 在 label 绑定选中值时,收起时会以矩形形态 morph 回 label(已知 bug),
+    /// 因此弃用 Menu:芯片为普通按钮,点按后在栏下方内联展开玻璃选项面板。
     @ViewBuilder
     private var filterBar: some View {
         let visibleKeys = Self.filterKeys.filter { options(for: $0.0).count > 1 }
         if !visibleKeys.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    // 一键清除所有筛选
-                    if filters.values.contains(where: { $0 != "All" }) {
-                        Button {
-                            withAnimation(.spring(duration: 0.4)) {
-                                filters = [:]
-                            }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Image(systemName: "xmark.circle.fill")
-                                    .font(.system(size: 9, weight: .semibold))
-                                Text("Clear")
-                                    .font(.caption.weight(.semibold))
-                            }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            // 用 regularMaterial 胶囊而非 glassEffect:芯片文字变化会改变尺寸,
-                            // 玻璃效果层在尺寸变化的一帧按矩形渲染(闪方块),材质背景原子渲染不闪烁
-                            .background(.regularMaterial, in: Capsule())
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
-                            )
-                        }
-                        .buttonStyle(.plain)
-                    }
-
-                    ForEach(visibleKeys, id: \.0) { key, label in
-                        let current = filters[key] ?? "All"
-                        let isActive = current != "All"
-                        Menu {
+            VStack(alignment: .leading, spacing: 8) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        // 一键清除所有筛选
+                        if filters.values.contains(where: { $0 != "All" }) {
                             Button {
-                                filters[key] = "All"
-                            } label: {
-                                Label("All", systemImage: current == "All" ? "checkmark" : "")
-                            }
-                            ForEach(options(for: key), id: \.self) { value in
-                                Button {
-                                    filters[key] = value
-                                } label: {
-                                    Label(value, systemImage: current == value ? "checkmark" : "")
+                                withAnimation(.spring(duration: 0.4)) {
+                                    filters = [:]
+                                    expandedFilter = nil
                                 }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "xmark.circle.fill")
+                                        .font(.system(size: 9, weight: .semibold))
+                                    Text("Clear")
+                                        .font(.caption.weight(.semibold))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(.regularMaterial, in: Capsule())
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
+                                )
                             }
-                        } label: {
-                            HStack(spacing: 4) {
-                                Text(isActive ? "\(label): \(current)" : label)
-                                    .font(.caption.weight(isActive ? .semibold : .medium))
-                                    .foregroundStyle(isActive ? .primary : .secondary)
-                                Image(systemName: "chevron.up.chevron.down")
-                                    .font(.system(size: 8, weight: .bold))
-                                    .foregroundStyle(.tertiary)
+                            .buttonStyle(.plain)
+                        }
+
+                        ForEach(visibleKeys, id: \.0) { key, label in
+                            let current = filters[key] ?? "All"
+                            let isActive = current != "All"
+                            Button {
+                                withAnimation(.spring(duration: 0.35)) {
+                                    expandedFilter = (expandedFilter == key) ? nil : key
+                                }
+                            } label: {
+                                HStack(spacing: 4) {
+                                    Text(isActive ? "\(label): \(current)" : label)
+                                        .font(.caption.weight(isActive ? .semibold : .medium))
+                                        .foregroundStyle(isActive ? .primary : .secondary)
+                                    Image(systemName: expandedFilter == key ? "chevron.down" : "chevron.up.chevron.down")
+                                        .font(.system(size: 8, weight: .bold))
+                                        .foregroundStyle(.tertiary)
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(.regularMaterial, in: Capsule())
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(
+                                            scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                                            lineWidth: 1
+                                        )
+                                )
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 7)
-                            // 与 Clear 同理:材质胶囊,文字长度变化不闪矩形
-                            .background(.regularMaterial, in: Capsule())
-                            .overlay(
-                                Capsule()
-                                    .strokeBorder(
-                                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
-                                        lineWidth: 1
-                                    )
-                            )
+                            .buttonStyle(.plain)
                         }
                     }
+                    // 左右各 20pt padding:初始左对齐卡片文字,滚动到最右时末芯片右对齐卡片
+                    .padding(.horizontal, 20)
+                    .padding(.top, 2)
                 }
-                // 左右各 20pt padding:初始左对齐卡片文字,滚动到最右时末芯片右对齐卡片
-                .padding(.horizontal, 20)
-                .padding(.top, 2)
-                .padding(.bottom, 4)
+
+                // 内联选项面板:玻璃卡片 + 横向胶囊选项(选中项蓝色玻璃染)
+                if let expandedKey = expandedFilter {
+                    optionsPanel(for: expandedKey)
+                        .padding(.horizontal, 20)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                }
+            }
+            .padding(.bottom, 4)
+        }
+    }
+
+    /// 展开的选项面板(All + 各选项;横向滚动玻璃胶囊,点选后收起)
+    private func optionsPanel(for key: String) -> some View {
+        let label = Self.filterKeys.first { $0.0 == key }?.1 ?? key
+        let current = filters[key] ?? "All"
+        let allOptions = ["All"] + options(for: key)
+        return GlassCard(cornerRadius: 18, padding: 12) {
+            VStack(alignment: .leading, spacing: 8) {
+                SectionHeader(title: label, subtitle: current == "All" ? nil : current)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 6) {
+                        ForEach(allOptions, id: \.self) { value in
+                            let selected = current == value
+                            Button {
+                                withAnimation(.spring(duration: 0.35)) {
+                                    filters[key] = value
+                                    expandedFilter = nil
+                                }
+                            } label: {
+                                Text(value)
+                                    .font(.caption.weight(selected ? .semibold : .medium))
+                                    .foregroundStyle(selected ? .white : .primary)
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.vertical, 2)
+                }
             }
         }
     }
