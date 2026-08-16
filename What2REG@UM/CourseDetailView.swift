@@ -32,7 +32,7 @@ struct CourseDetailView: View {
             }
         }
                 .navigationTitle(code)
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .task {
             guard data == nil else { return }
             await load()

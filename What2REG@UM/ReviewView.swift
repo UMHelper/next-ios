@@ -136,7 +136,7 @@ struct ReviewView: View {
             }
         }
                 .navigationTitle("\(code) · \(prof)")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .task {
             guard data == nil else { return }
             await load(page: page)
