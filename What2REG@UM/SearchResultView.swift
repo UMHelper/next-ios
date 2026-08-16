@@ -16,27 +16,33 @@ struct CourseRow: View {
         NavigationLink(value: Route.course(course.New_code)) {
             GlassCard(padding: 16) {
                 VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        // 课程代码(纯文字,加粗)
-                        Text(course.New_code)
-                            .font(.subheadline.weight(.heavy))
+                    // 头部:与课程页一致(代码/标题/中文名同组紧凑排列)
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(course.New_code)
+                                .font(.subheadline.weight(.heavy))
+
+                            if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
+                                Text(titleEng)
+                                    .font(.subheadline)
+                                    .lineLimit(2)
+                            }
+                            if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
+                                Text(titleChi)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                        }
+
                         Spacer()
+
                         if course.Is_Offered == 1 {
                             OfferedComView()
                         }
                     }
 
-                    if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
-                        Text(titleEng)
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(2)
-                    }
-                    if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
-                        Text(titleChi)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
+                    Divider().opacity(0.4)
 
                     // 信息区:与课程页一致的四列网格(标签在上,值在下,左右对齐,无图标无单位)
                     Grid(horizontalSpacing: 12, verticalSpacing: 6) {
