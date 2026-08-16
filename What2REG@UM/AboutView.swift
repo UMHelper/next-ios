@@ -15,12 +15,18 @@ struct AboutView: View {
             VStack(alignment: .leading, spacing: 14) {
                 // 品牌卡(与课程页头部同构:紧凑 4pt 组)
                 GlassCard(cornerRadius: 26, padding: 18) {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("What2REG @UM")
-                            .font(.title3.weight(.bold))
-                        Text("Course review platform for University of Macau")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 14) {
+                        Image("CatLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 56, height: 56)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("What2REG @UM")
+                                .font(.title3.weight(.bold))
+                            Text("Course review platform for University of Macau")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
 

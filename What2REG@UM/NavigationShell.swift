@@ -93,13 +93,19 @@ struct SidebarMenu: View {
 
                 // 面板:悬浮圆角玻璃卡(与 GlassCard 同一套描边/投影)
                 VStack(alignment: .leading, spacing: 6) {
-                    // 品牌头部(紧凑组)
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("What2REG @UM")
-                            .font(.title3.weight(.bold))
-                        Text("Course reviews for University of Macau")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    // 品牌头部(紧凑组 + 猫咪 logo)
+                    HStack(spacing: 12) {
+                        Image("CatLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 40, height: 40)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("What2REG @UM")
+                                .font(.title3.weight(.bold))
+                            Text("Course reviews for University of Macau")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                     .padding(.horizontal, 18)
                     .padding(.top, 20)
