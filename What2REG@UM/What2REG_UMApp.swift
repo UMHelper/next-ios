@@ -23,11 +23,12 @@ struct RootView: View {
     @State private var path: [Route] = []
     @State private var selection: SidebarDestination = .home
     @State private var isSidebarOpen = false
-    @AppStorage("app.theme") private var themeRaw = AppTheme.system.rawValue
+    // 默认黑暗模式(用户可在侧边栏切换为 Light/System)
+    @AppStorage("app.theme") private var themeRaw = AppTheme.dark.rawValue
 
     private var theme: Binding<AppTheme> {
         Binding(
-            get: { AppTheme(rawValue: themeRaw) ?? .system },
+            get: { AppTheme(rawValue: themeRaw) ?? .dark },
             set: { themeRaw = $0.rawValue }
         )
     }
