@@ -2,7 +2,7 @@
 //  AboutView.swift
 //  What2REG@UM
 //
-//  关于页：品牌信息、社区与开源链接、数据来源（玻璃卡片）。
+//  关于页：品牌信息 + 社区链接（详情行样式），与整体设计统一。
 //
 
 import SwiftUI
@@ -10,90 +10,84 @@ import SwiftUI
 struct AboutView: View {
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 16) {
-                // 品牌卡
-                GlassCard(cornerRadius: 26, padding: 20) {
-                    VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 14) {
+                // 品牌卡(与课程页头部同构:紧凑 4pt 组)
+                GlassCard(cornerRadius: 26, padding: 18) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("What2REG @UM")
-                            .font(.system(size: 30, weight: .heavy, design: .rounded))
-                            .foregroundStyle(.primary)
+                            .font(.title3.weight(.bold))
                         Text("Course review platform for University of Macau")
-                            .font(.subheadline)
+                            .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                 }
 
                 SectionHeader(title: "Community")
-                linkCard(
-                    icon: "quote.bubble.fill",
-                    title: "Report and Feedback",
-                    url: "https://docs.google.com/forms/d/1_HrH0jJ9Fyxu_dmW1xGsn9Hq1ZtN9nFG-Jangj_BNVk/"
-                )
-                linkCard(
-                    icon: "person.3.fill",
-                    title: "UMHelper Dev Group",
-                    url: "https://github.com/UMHelper/Feedback-and-Join-Us/blob/master/Join.md"
-                )
-                linkCard(
-                    icon: "chevron.left.forwardslash.chevron.right",
-                    title: "What2Reg Ver. \"Next\" (GitHub)",
-                    url: "https://github.com/UMHelper/next-web"
-                )
-                linkCard(
-                    icon: "swift",
-                    title: "next-ios (GitHub)",
-                    url: "https://github.com/UMHelper/next-ios"
-                )
+                    .padding(.horizontal, 16)
 
-                SectionHeader(title: "Data")
-                    .padding(.top, 4)
-                GlassCard(padding: 16) {
-                    VStack(spacing: 10) {
-                        dataRow("Data Source", "reg.um.edu.mo")
-                        Divider().opacity(0.4)
-                        dataRow("Web", "umeh.top")
-                        Divider().opacity(0.4)
-                        dataRow("API", APIConfig.baseURL)
+                // 社区链接(单卡详情行,发丝分割线)
+                GlassCard(padding: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        linkRow(
+                            icon: "quote.bubble.fill",
+                            title: "Report and Feedback",
+                            url: "https://docs.google.com/forms/d/1_HrH0jJ9Fyxu_dmW1xGsn9Hq1ZtN9nFG-Jangj_BNVk/"
+                        )
+                        divider
+                        linkRow(
+                            icon: "person.3.fill",
+                            title: "UMHelper Dev Group",
+                            url: "https://github.com/UMHelper/Feedback-and-Join-Us/blob/master/Join.md"
+                        )
+                        divider
+                        linkRow(
+                            icon: "chevron.left.forwardslash.chevron.right",
+                            title: "What2Reg Ver. \"Next\" (GitHub)",
+                            url: "https://github.com/UMHelper/next-web"
+                        )
+                        divider
+                        linkRow(
+                            icon: "swift",
+                            title: "next-ios (GitHub)",
+                            url: "https://github.com/UMHelper/next-ios"
+                        )
                     }
                 }
 
                 Text("Reviews are submitted anonymously by users and are for reference only.")
-                    .font(.caption)
+                    .font(.caption2)
                     .foregroundStyle(.tertiary)
                     .frame(maxWidth: .infinity)
+                    .padding(.top, 4)
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
-            }
-
-    private func linkCard(icon: String, title: String, url: String) -> some View {
-        Link(destination: URL(string: url)!) {
-            GlassCard(padding: 14) {
-                HStack(spacing: 14) {
-                    Image(systemName: icon)
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(.blue)
-                        .frame(width: 40, height: 40)
-                        .glassEffect(.regular.interactive(), in: .circle)
-                    Text(title)
-                        .font(.subheadline.weight(.semibold))
-                    Spacer(minLength: 0)
-                    Image(systemName: "arrow.up.right")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-        }
-        .buttonStyle(.plain)
     }
 
-    private func dataRow(_ title: String, _ value: String) -> some View {
-        HStack {
-            Text(title).font(.footnote).foregroundStyle(.secondary)
-            Spacer()
-            Text(value).font(.footnote.weight(.semibold)).lineLimit(1)
+    private var divider: some View {
+        Divider().opacity(0.4).padding(.horizontal, 14)
+    }
+
+    /// 链接行:小图标 + 文字 + 右对齐箭头(与详情行同构)
+    private func linkRow(icon: String, title: String, url: String) -> some View {
+        Link(destination: URL(string: url)!) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(title)
+                    .font(.footnote)
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
     }
 }
