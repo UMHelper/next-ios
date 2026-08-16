@@ -119,6 +119,7 @@ struct ReviewView: View {
     @State private var showAdminNotice = false
     @State private var dismissNoticeTask: Task<Void, Never>?
     @State private var cardsAppeared = false
+    @State private var showTitle = false
 
     var body: some View {
         Group {
@@ -135,8 +136,15 @@ struct ReviewView: View {
                 content(data)
             }
         }
-                .navigationTitle("\(code) · \(prof)")
-        .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if showTitle {
+                ToolbarItem(placement: .principal) {
+                    Text("\(code) · \(prof)")
+                        .font(.headline)
+                }
+            }
+        }
         .task {
             guard data == nil else { return }
             await load(page: page)
@@ -207,6 +215,21 @@ struct ReviewView: View {
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .preference(
+                            key: ScrollOffsetKey.self,
+                            value: geo.frame(in: .named("reviewScroll")).minY
+                        )
+                }
+            )
+        }
+        .coordinateSpace(name: "reviewScroll")
+        .onPreferenceChange(ScrollOffsetKey.self) { offset in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showTitle = offset < -20
+            }
         }
         .sheet(isPresented: $showTimetable) {
             TimetableSheet(timetables: data.timetable, code: code, prof: prof)

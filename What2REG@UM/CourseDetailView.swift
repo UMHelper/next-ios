@@ -15,6 +15,7 @@ struct CourseDetailView: View {
     @State private var errorMessage: String?
     @State private var showCourseDetail = false
     @State private var cardsAppeared = false
+    @State private var showTitle = false
 
     var body: some View {
         Group {
@@ -31,8 +32,15 @@ struct CourseDetailView: View {
                 content(data)
             }
         }
-                .navigationTitle(code)
-        .navigationBarTitleDisplayMode(.large)
+                .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if showTitle {
+                ToolbarItem(placement: .principal) {
+                    Text(code)
+                        .font(.headline)
+                }
+            }
+        }
         .task {
             guard data == nil else { return }
             await load()
@@ -54,6 +62,7 @@ struct CourseDetailView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 courseHeader(data)
+                    .cardEntrance(appeared: cardsAppeared, delay: 0)
 
                 if data.profList.isEmpty {
                     GlassCard {
@@ -69,17 +78,33 @@ struct CourseDetailView: View {
                     SectionHeader(title: "Instructors", subtitle: "\(data.profList.count) professor\(data.profList.count == 1 ? "" : "s")")
                         .padding(.horizontal, 16)
 
-                    ForEach(data.profList) { prof in
+                    ForEach(Array(data.profList.enumerated()), id: \.element.id) { index, prof in
                         NavigationLink(value: Route.review(code, prof: prof.prof_id)) {
                             ProfListItemView(prof: prof)
                         }
                         .buttonStyle(.plain)
+                        .cardEntrance(appeared: cardsAppeared, delay: 0.1 + Double(min(index, 8)) * 0.05)
                     }
                 }
             }
             .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
+            .background(
+                GeometryReader { geo in
+                    Color.clear
+                        .preference(
+                            key: ScrollOffsetKey.self,
+                            value: geo.frame(in: .named("courseScroll")).minY
+                        )
+                }
+            )
+        }
+        .coordinateSpace(name: "courseScroll")
+        .onPreferenceChange(ScrollOffsetKey.self) { offset in
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showTitle = offset < -20
+            }
         }
     }
 

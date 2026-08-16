@@ -175,6 +175,15 @@ struct LoopingTypewriterText: View {
     }
 }
 
+// MARK: - 滚动偏移(用于下滑后显示顶部标题)
+
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
 // MARK: - 卡片入场动效（淡入 + 上浮,支持错峰延迟）
 
 extension View {
