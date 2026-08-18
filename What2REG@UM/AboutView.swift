@@ -23,10 +23,14 @@ struct AboutView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What2REG @UM")
                                 .font(.title3.weight(.bold))
-                            // 署名(不斜体,与侧边栏品牌头一致)
-                            Text("by UMHelper")
-                                .font(.caption)
-                                .foregroundStyle(.tertiary)
+                            // 署名:仅 "by" 斜体,UMHelper 正体
+                            HStack(spacing: 3) {
+                                Text("by")
+                                    .italic()
+                                Text("UMHelper")
+                            }
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
                         }
                     }
                 }
