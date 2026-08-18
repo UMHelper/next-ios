@@ -178,6 +178,8 @@ struct CatalogView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        // 未展开时固定高度:同行另一张卡展开时,本卡不会被网格拉伸变形
+        .frame(height: isExpanded ? nil : 120, alignment: .top)
         .glassEffect(in: .rect(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
