@@ -72,6 +72,8 @@ struct AboutView: View {
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
+        // 关掉系统滚动底色,露出统一的 LiquidBackground
+        .scrollContentBackground(.hidden)
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {

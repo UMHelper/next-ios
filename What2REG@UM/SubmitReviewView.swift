@@ -172,6 +172,8 @@ struct SubmitReviewView: View {
             .padding(.bottom, 96)
             }
         }
+        // 关掉系统滚动底色,露出统一的 LiquidBackground
+        .scrollContentBackground(.hidden)
     }
 
     /// 玻璃胶囊分段选择(替代系统 segmented:三等宽胶囊,选中 = 蓝色玻璃染)

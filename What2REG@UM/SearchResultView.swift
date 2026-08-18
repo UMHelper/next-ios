@@ -270,6 +270,8 @@ struct SearchResultView: View {
                 .padding(.bottom, 96)
             }
         }
+        // 关掉系统滚动底色,露出统一的 LiquidBackground(浅色模式尤其明显)
+        .scrollContentBackground(.hidden)
     }
 
     /// 过滤胶囊栏:仅展示存在多个选项的维度;中性玻璃样式与整体设计一致。
