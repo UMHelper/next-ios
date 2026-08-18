@@ -105,13 +105,9 @@ struct SidebarMenu: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("What2REG @UM")
                                 .font(.title3.weight(.bold))
-                            // 小一号的繁体中文名 + 斜体署名(与 About 页品牌卡一致)
-                            Text("澳大選咩課")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                            // 署名(不斜体,与 About 页品牌卡一致)
                             Text("by UMHelper")
                                 .font(.caption)
-                                .italic()
                                 .foregroundStyle(.tertiary)
                         }
                     }
