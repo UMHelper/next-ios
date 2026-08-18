@@ -239,7 +239,8 @@ struct CatalogView: View {
     }
 
     private func open(unit: String, dept: String?) {
-        selectedUnit = unit
+        // 显示名 "GE Course" 归一化为 API 使用的 "gecourse"(其他学院代码无空格,原样保留)
+        selectedUnit = (unit == "GE Course") ? "gecourse" : unit
         selectedDept = dept
         courses = []
         Task { await load() }
