@@ -125,11 +125,9 @@ struct SidebarMenu: View {
                             }
                         } label: {
                             HStack(spacing: 10) {
-                                Image(systemName: item.systemImage)
-                                    .font(.caption)
-                                    .foregroundStyle(selection == item ? .blue : .secondary)
+                                // 无前置图标:纯文字菜单项(文字稍大),右对齐箭头保持详情行语言
                                 Text(item.title)
-                                    .font(.footnote.weight(selection == item ? .semibold : .regular))
+                                    .font(.subheadline.weight(selection == item ? .semibold : .regular))
                                     .foregroundStyle(selection == item ? .blue : .primary)
                                 Spacer()
                                 Image(systemName: "chevron.right")
