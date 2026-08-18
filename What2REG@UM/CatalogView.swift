@@ -349,7 +349,7 @@ struct CatalogView: View {
         isLoading = false
     }
 }
-// MARK: - 紧凑课程卡(卡片布局)
+// MARK: - 紧凑课程卡(卡片布局;与 CourseRow 同构:头部 + 分割线 + 标签值信息区)
 
 struct CatalogCourseCard: View {
     let course: FuzzyCourse
@@ -358,37 +358,46 @@ struct CatalogCourseCard: View {
     var body: some View {
         NavigationLink(value: Route.course(course.New_code)) {
             VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(course.New_code)
-                        .font(.subheadline.weight(.heavy))
-                        .lineLimit(1)
+                // 头部:代码/标题/中文名 + Offered 徽章(与 CourseRow 一致)
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(course.New_code)
+                            .font(.subheadline.weight(.heavy))
+                            .lineLimit(1)
+                        if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
+                            Text(titleEng)
+                                .font(.caption)
+                                .lineLimit(2)
+                        }
+                        if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
+                            Text(titleChi)
+                                .font(.caption2)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                        }
+                    }
                     Spacer()
                     if course.Is_Offered == 1 {
                         OfferedComView()
                     }
                 }
 
-                if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
-                    Text(titleEng)
-                        .font(.caption)
-                        .lineLimit(2)
-                }
-                if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
-                    Text(titleChi)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                }
+                Divider().opacity(0.4)
 
-                Spacer(minLength: 0)
-
-                Text((course.Credits ?? "N/A") + " cr · " + (course.Offering_Department ?? "N/A"))
-                    .font(.system(size: 10))
-                    .foregroundStyle(.tertiary)
-                    .lineLimit(1)
+                // 信息区:与 CourseRow 同款标签/值(紧凑 2×2,不再用 "cr" 缩写)
+                Grid(horizontalSpacing: 8, verticalSpacing: 4) {
+                    GridRow {
+                        infoColumn("Credits", course.Credits ?? "N/A")
+                        infoColumn("Dept.", course.Offering_Department ?? "N/A")
+                    }
+                    GridRow {
+                        infoColumn("Faculty", course.Offering_Unit ?? "N/A")
+                        infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                    }
+                }
             }
             .padding(14)
-            .frame(maxWidth: .infinity, minHeight: 118, alignment: .leading)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .glassEffect(in: .rect(cornerRadius: 18))
             .overlay(
                 RoundedRectangle(cornerRadius: 18)
@@ -399,5 +408,18 @@ struct CatalogCourseCard: View {
             )
         }
         .buttonStyle(.plain)
+    }
+
+    /// 与 CourseRow.infoColumn 同款:10pt 标签在上,值在下
+    private func infoColumn(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            Text(value)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
