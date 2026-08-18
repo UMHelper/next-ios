@@ -14,7 +14,8 @@ struct LiquidBackground: View {
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
+        // 15fps:光斑轨道周期 26-42s,运动极慢,帧率减半视觉无差,但玻璃卡每帧重采样背底的次数减半
+        TimelineView(.animation(minimumInterval: 1.0 / 15.0)) { timeline in
             let t = timeline.date.timeIntervalSinceReferenceDate
             let light = scheme == .light
             GeometryReader { geo in
@@ -81,6 +82,8 @@ struct LiquidBackground: View {
                         opacity: light ? 0.26 : 0.36
                     )
                 }
+                // 整层一次性合成(视觉不变),减少玻璃卡背后的逐层混合开销
+                .drawingGroup()
             }
         }
         .ignoresSafeArea()
@@ -98,7 +101,8 @@ struct LiquidBackground: View {
         blur: CGFloat,
         opacity: Double
     ) -> some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { timeline in
+        // 15fps:光斑轨道周期 26-42s,运动极慢,帧率减半视觉无差,但玻璃卡每帧重采样背底的次数减半
+        TimelineView(.animation(minimumInterval: 1.0 / 15.0)) { timeline in
             let t = timeline.date.timeIntervalSinceReferenceDate
             let angle = (t / period).truncatingRemainder(dividingBy: 1) * 2 * .pi
             Ellipse()
