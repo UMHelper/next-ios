@@ -107,6 +107,7 @@ struct SearchResultView: View {
     let initialKeyword: String
 
     @Environment(\.colorScheme) private var scheme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var currentMode: String
     @State private var searchKeyword: String
 
@@ -280,17 +281,18 @@ struct SearchResultView: View {
     @ViewBuilder
     private var filterBar: some View {
         let visibleKeys = Self.filterKeys.filter { options(for: $0.0).count > 1 }
+        let hasActiveFilters = filters.values.contains { $0 != "All" }
         if !visibleKeys.isEmpty {
             VStack(alignment: .leading, spacing: 8) {
+                // 整个筛选条是一块 Liquid Glass;内部胶囊只负责表达点击与选中状态。
+                // 不用 GlassEffectContainer:漂浮式容器在页面返回重挂载时会重新落定,
+                // 导致筛选栏往下跳一段;直接对横向滚动区应用固定玻璃矩形。
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         // 一键清除所有筛选
-                        if filters.values.contains(where: { $0 != "All" }) {
+                        if hasActiveFilters {
                             Button {
-                                withAnimation(.spring(duration: 0.4)) {
-                                    filters = [:]
-                                    expandedFilter = nil
-                                }
+                                clearFilters()
                             } label: {
                                 HStack(spacing: 4) {
                                     Image(systemName: "xmark.circle.fill")
@@ -300,7 +302,7 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                .glassEffect(.regular.interactive(), in: .capsule)
+                                .background(Color.secondary.opacity(0.12), in: Capsule())
                                 .overlay(
                                     Capsule()
                                         .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
@@ -313,9 +315,7 @@ struct SearchResultView: View {
                             let current = filters[key] ?? "All"
                             let isActive = current != "All"
                             Button {
-                                withAnimation(.spring(duration: 0.35)) {
-                                    expandedFilter = (expandedFilter == key) ? nil : key
-                                }
+                                toggleFilter(key)
                             } label: {
                                 HStack(spacing: 4) {
                                     Text(isActive ? "\(label): \(current)" : label)
@@ -327,8 +327,12 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                // 与列表玻璃卡同源的玻璃胶囊,消除材质胶囊与玻璃列表的割裂感
-                                .glassEffect(.regular.interactive(), in: .capsule)
+                                .background(
+                                    isActive
+                                        ? Color.blue.opacity(scheme == .dark ? 0.30 : 0.18)
+                                        : Color.white.opacity(scheme == .dark ? 0.08 : 0.28),
+                                    in: Capsule()
+                                )
                                 .overlay(
                                     Capsule()
                                         .strokeBorder(
@@ -340,16 +344,17 @@ struct SearchResultView: View {
                             .buttonStyle(.plain)
                         }
                     }
-                    // 左右各 20pt padding:初始左对齐卡片文字,滚动到最右时末芯片右对齐卡片
-                    .padding(.horizontal, 20)
-                    .padding(.top, 2)
+                    .padding(.horizontal, 12)
                 }
+                .padding(.vertical, 6)
+                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 22))
+                .padding(.horizontal, 12)
 
                 // 内联选项面板:玻璃卡片 + 横向胶囊选项(选中项蓝色玻璃染)
                 if let expandedKey = expandedFilter {
                     optionsPanel(for: expandedKey)
                         .padding(.horizontal, 20)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
+                        .transition(.opacity)
                 }
             }
             .padding(.bottom, 4)
@@ -361,7 +366,7 @@ struct SearchResultView: View {
         let label = Self.filterKeys.first { $0.0 == key }?.1 ?? key
         let current = filters[key] ?? "All"
         let allOptions = ["All"] + options(for: key)
-        return GlassCard(cornerRadius: 18, padding: 12) {
+        return GlassEffectContainer(spacing: 8) {
             VStack(alignment: .leading, spacing: 8) {
                 SectionHeader(title: label, subtitle: current == "All" ? nil : current)
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -369,17 +374,19 @@ struct SearchResultView: View {
                         ForEach(allOptions, id: \.self) { value in
                             let selected = current == value
                             Button {
-                                withAnimation(.spring(duration: 0.35)) {
-                                    filters[key] = value
-                                    expandedFilter = nil
-                                }
+                                selectFilter(key: key, value: value)
                             } label: {
                                 Text(value)
                                     .font(.caption.weight(selected ? .semibold : .medium))
                                     .foregroundStyle(selected ? .white : .primary)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
+                                    .background(
+                                        selected
+                                            ? Color.blue
+                                            : Color.white.opacity(scheme == .dark ? 0.08 : 0.28),
+                                        in: Capsule()
+                                    )
                             }
                             .buttonStyle(.plain)
                         }
@@ -387,6 +394,50 @@ struct SearchResultView: View {
                     .padding(.vertical, 2)
                 }
             }
+            .padding(12)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassEffect(in: .rect(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .strokeBorder(
+                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(color: .black.opacity(scheme == .dark ? 0.18 : 0.07), radius: 10, y: 5)
+        }
+    }
+
+    private var filterPanelAnimation: Animation? {
+        reduceMotion ? nil : .easeOut(duration: 0.16)
+    }
+
+    private func toggleFilter(_ key: String) {
+        // 在两个已展开的维度之间切换时直接更新内容，避免旧、新文字交叉 morph。
+        if let expandedFilter, expandedFilter != key {
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                self.expandedFilter = key
+            }
+        } else {
+            withAnimation(filterPanelAnimation) {
+                expandedFilter = expandedFilter == key ? nil : key
+            }
+        }
+    }
+
+    private func selectFilter(key: String, value: String) {
+        filters[key] = value
+        withAnimation(filterPanelAnimation) {
+            expandedFilter = nil
+        }
+    }
+
+    private func clearFilters() {
+        filters = [:]
+        withAnimation(filterPanelAnimation) {
+            expandedFilter = nil
         }
     }
 

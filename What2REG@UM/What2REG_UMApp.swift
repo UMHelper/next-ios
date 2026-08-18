@@ -115,6 +115,8 @@ struct Route: Hashable {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(LiquidBackground())
+        // 推入页面也隐藏工具栏背景:避免返回时工具栏材质→透明的过渡挤压页面内容
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
 }
 

@@ -232,6 +232,8 @@ struct CatalogView: View {
             // 系别筛选胶囊
             let options = deptOptions
             if !options.isEmpty {
+                // 不用 GlassEffectContainer:漂浮式容器在页面返回重挂载时会重新落定,
+                // 导致筛选栏往下跳一段;直接对横向滚动区应用固定玻璃矩形
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         chip("All", selected: selectedDept == nil) {
@@ -245,8 +247,11 @@ struct CatalogView: View {
                             }
                         }
                     }
-                    .padding(.horizontal, 20)
+                    .padding(.horizontal, 12)
                 }
+                .padding(.vertical, 6)
+                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 22))
+                .padding(.horizontal, 12)
             }
 
             if isLoading {
@@ -302,8 +307,12 @@ struct CatalogView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .foregroundStyle(selected ? .white : .primary)
-                // 胶囊形状直接烤进玻璃效果,选中状态切换时不闪矩形
-                .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
+                .background(
+                    selected
+                        ? Color.blue
+                        : Color.white.opacity(scheme == .dark ? 0.08 : 0.28),
+                    in: Capsule()
+                )
                 .overlay(
                     Capsule()
                         .strokeBorder(selected ? Color.clear : Color.secondary.opacity(0.25), lineWidth: 1)

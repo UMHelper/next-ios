@@ -174,6 +174,8 @@ struct SubmitReviewView: View {
         }
         // 关掉系统滚动底色,露出统一的 LiquidBackground
         .scrollContentBackground(.hidden)
+        // 与推入页面一致:隐藏工具栏背景,返回时不挤压内容
+        .toolbarBackgroundVisibility(.hidden, for: .navigationBar)
     }
 
     /// 玻璃胶囊分段选择(替代系统 segmented:三等宽胶囊,选中 = 蓝色玻璃染)
