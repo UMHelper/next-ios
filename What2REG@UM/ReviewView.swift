@@ -288,8 +288,6 @@ struct ReviewView: View {
                 }
                 .buttonStyle(.plain)
 
-                Divider().opacity(0.4)
-
                 // 操作行:提交评价 / 时间表(位于教师名字下方)
                 NavigationLink {
                     SubmitReviewView(code: code, prof: prof)
@@ -325,8 +323,6 @@ struct ReviewView: View {
                     }
                     .buttonStyle(.plain)
                 }
-
-                Divider().opacity(0.4)
 
                 // 量化评分:与上方信息同一张卡片(卡片下半部)
                 Grid(horizontalSpacing: 8) {
