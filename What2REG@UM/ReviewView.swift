@@ -171,13 +171,17 @@ struct ReviewView: View {
                 data = newData
                 comments = newData.comments
             } else {
-                // 追加下一页评论(去重)
+                // 追加下一页评论(去重);带动画让滑动条与内容高度平滑变化,消除瞬间跳变
                 let existing = Set(comments.map { $0.id })
-                comments.append(contentsOf: newData.comments.filter { !existing.contains($0.id) })
+                withAnimation(.easeOut(duration: 0.25)) {
+                    comments.append(contentsOf: newData.comments.filter { !existing.contains($0.id) })
+                    self.page = newData.page
+                    totalPage = newData.total_page
+                }
             }
-            self.page = newData.page
-            totalPage = newData.total_page
             if page == 1 {
+                self.page = newData.page
+                totalPage = newData.total_page
                 showAdminNoticeIfNeeded(newData)
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.85)) {
                     cardsAppeared = true
@@ -348,6 +352,8 @@ struct ReviewView: View {
     // MARK: 评论列表(累积加载的评论)
     private var commentsSection: some View {
         let topLevel = comments.filter { $0.replyto == nil }
+        // 预计算「父评论 ID → 回复列表」映射:分页追加时避免每行重复过滤整个数组(O(n²) → O(n))
+        let repliesByParent = Dictionary(grouping: comments.filter { $0.replyto != nil }, by: { $0.replyto! })
         return VStack(alignment: .leading, spacing: 14) {
             SectionHeader(title: "Reviews")
                 .padding(.horizontal, 16)
@@ -365,7 +371,7 @@ struct ReviewView: View {
                     ForEach(Array(topLevel.enumerated()), id: \.element.id) { index, comment in
                         CommentView(
                             comment: comment,
-                            replies: comments.filter { $0.replyto == comment.id }
+                            replies: repliesByParent[comment.id] ?? []
                         )
                         .cardEntrance(appeared: cardsAppeared, delay: 0.08 + Double(min(index, 8)) * 0.05)
                     }
