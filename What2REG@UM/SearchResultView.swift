@@ -7,71 +7,6 @@
 
 import SwiftUI
 
-// MARK: - 课程结果卡片
-
-struct CourseRow: View {
-    let course: FuzzyCourse
-
-    var body: some View {
-        NavigationLink(value: Route.course(course.New_code)) {
-            GlassCard(padding: 16) {
-                VStack(alignment: .leading, spacing: 10) {
-                    // 头部:与课程页一致(代码/标题/中文名同组紧凑排列)
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(course.New_code)
-                                .font(.subheadline.weight(.heavy))
-
-                            if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
-                                Text(titleEng)
-                                    .font(.subheadline)
-                                    .lineLimit(2)
-                            }
-                            if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
-                                Text(titleChi)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                            }
-                        }
-
-                        Spacer()
-
-                        if course.Is_Offered == 1 {
-                            OfferedComView()
-                        }
-                    }
-
-                    Divider().opacity(0.4)
-
-                    // 信息区:与课程页一致的四列网格(标签在上,值在下,左右对齐,无图标无单位)
-                    Grid(horizontalSpacing: 12, verticalSpacing: 6) {
-                        GridRow {
-                            infoColumn("Credits", course.Credits ?? "N/A")
-                            infoColumn("Dept.", course.Offering_Department ?? "N/A")
-                            infoColumn("Faculty", course.Offering_Unit ?? "N/A")
-                            infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
-                        }
-                    }
-                }
-            }
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func infoColumn(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
-            Text(value)
-                .font(.caption)
-                .lineLimit(1)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
-
 // MARK: - 讲师结果分组
 
 struct ProfRow: View {
@@ -82,7 +17,7 @@ struct ProfRow: View {
             DisclosureGroup {
                 VStack(alignment: .leading, spacing: 12) {
                     ForEach(prof.course_list) { course in
-                        CourseRow(course: course)
+                        CourseCard(course: course)
                     }
                 }
                 .padding(.top, 10)
@@ -258,7 +193,7 @@ struct SearchResultView: View {
                 LazyVStack(alignment: .leading, spacing: 14) {
                     if currentMode == "course" {
                         ForEach(filteredCourses) { course in
-                            CourseRow(course: course)
+                            CourseCard(course: course)
                         }
                     } else {
                         ForEach(profs, id: \.prof_name) { prof in

@@ -252,6 +252,93 @@ struct GlassIconButton: View {
     }
 }
 
+// MARK: - 统一课程卡(全 App 课程卡片的唯一形式:固定行结构,高度一致)
+
+struct CourseCard: View {
+    let course: FuzzyCourse
+    /// true = 网格/窄卡:信息区 2×2;false = 整行宽卡:信息区一行四列
+    var compact: Bool = false
+    @Environment(\.colorScheme) private var scheme
+
+    var body: some View {
+        NavigationLink(value: Route.course(course.New_code)) {
+            VStack(alignment: .leading, spacing: 8) {
+                // 头部:代码 + 英文名(固定一行,截断) + 中文名(固定一行,截断;缺失也占位) + Offered 徽章
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text(course.New_code)
+                            .font(.subheadline.weight(.heavy))
+                            .lineLimit(1)
+                        Text(course.courseTitleEng ?? "")
+                            .font(.footnote)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                        Text(course.courseTitleChi ?? "")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+
+                    Spacer()
+
+                    if course.Is_Offered == 1 {
+                        OfferedComView()
+                    }
+                }
+
+                Divider().opacity(0.4)
+
+                if compact {
+                    Grid(horizontalSpacing: 8, verticalSpacing: 4) {
+                        GridRow {
+                            infoColumn("Credits", course.Credits ?? "N/A")
+                            infoColumn("Dept.", course.Offering_Department ?? "N/A")
+                        }
+                        GridRow {
+                            infoColumn("Faculty", course.Offering_Unit ?? "N/A")
+                            infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                        }
+                    }
+                } else {
+                    Grid(horizontalSpacing: 12, verticalSpacing: 6) {
+                        GridRow {
+                            infoColumn("Credits", course.Credits ?? "N/A")
+                            infoColumn("Dept.", course.Offering_Department ?? "N/A")
+                            infoColumn("Faculty", course.Offering_Unit ?? "N/A")
+                            infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
+                        }
+                    }
+                }
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .glassEffect(in: .rect(cornerRadius: 18))
+            .overlay(
+                RoundedRectangle(cornerRadius: 18)
+                    .strokeBorder(
+                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                        lineWidth: 1
+                    )
+            )
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 与信息列同款:10pt 标签在上,值在下(固定一行)
+    private func infoColumn(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+            Text(value)
+                .font(.caption)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 // MARK: - 区块标题（小号大写 + 字距）
 
 struct SectionHeader: View {

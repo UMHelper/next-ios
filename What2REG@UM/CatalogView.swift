@@ -37,6 +37,9 @@ struct CatalogView: View {
     @State private var selectedDept: String? = nil
     /// 是否停留在「系别页」(学院 → 系别 → 课程 三级下钻)
     @State private var showingDepts = false
+    /// 布局切换展开态(与搜索栏模式切换同款交互)
+    @State private var layoutExpanded = false
+    @Namespace private var layoutNamespace
     @State private var errorMessage: String?
     @State private var layout: CatalogLayout = .grid
 
@@ -84,25 +87,10 @@ struct CatalogView: View {
                         .font(.headline)
                 }
             }
-            // 列表/卡片切换:仅课程列表页显示(系统工具栏按钮组,自动圆形玻璃)
+            // 列表/卡片切换:仅课程列表页显示;与底部搜索栏模式切换同款玻璃开关
             if selectedUnit != nil && !showingDepts {
-                ToolbarItemGroup(placement: .topBarTrailing) {
-                    Button {
-                        withAnimation(.spring(duration: 0.45)) {
-                            layout = .grid
-                        }
-                    } label: {
-                        Image(systemName: layout == .grid ? "square.grid.2x2.fill" : "square.grid.2x2")
-                            .foregroundStyle(layout == .grid ? Color.blue : Color.secondary)
-                    }
-                    Button {
-                        withAnimation(.spring(duration: 0.45)) {
-                            layout = .list
-                        }
-                    } label: {
-                        Image(systemName: "list.bullet")
-                            .foregroundStyle(layout == .list ? Color.blue : Color.secondary)
-                    }
+                ToolbarItem(placement: .topBarTrailing) {
+                    layoutSwitch
                 }
             }
         }
@@ -257,7 +245,7 @@ struct CatalogView: View {
                             spacing: 14
                         ) {
                             ForEach(courses) { course in
-                                CatalogCourseCard(course: course)
+                                CourseCard(course: course, compact: true)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -267,7 +255,7 @@ struct CatalogView: View {
                         // 列表布局:整行课程卡
                         LazyVStack(alignment: .leading, spacing: 14) {
                             ForEach(courses) { course in
-                                CourseRow(course: course)
+                                CourseCard(course: course)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -321,6 +309,49 @@ struct CatalogView: View {
             showingDepts = false
             courses = []
         }
+    }
+
+    /// 布局切换:与搜索栏模式切换完全同款的玻璃开关(点当前态展开,点另一态切换并收起)
+    private var layoutSwitch: some View {
+        GlassEffectContainer {
+            HStack(spacing: 4) {
+                if layout == .grid {
+                    layoutIcon(.grid, systemName: "rectangle.grid.2x2.fill", isActive: true)
+                    if layoutExpanded {
+                        layoutIcon(.list, systemName: "rectangle.grid.1x2", isActive: false)
+                    }
+                } else {
+                    layoutIcon(.list, systemName: "rectangle.grid.1x2.fill", isActive: true)
+                    if layoutExpanded {
+                        layoutIcon(.grid, systemName: "rectangle.grid.2x2", isActive: false)
+                    }
+                }
+            }
+            .padding(3)
+        }
+        // 动态插入的玻璃视图需要强制重建容器才渲染
+        .id(layoutExpanded)
+    }
+
+    /// 布局图标(小号玻璃按钮,与搜索栏模式图标同构)
+    private func layoutIcon(_ mode: CatalogLayout, systemName: String, isActive: Bool) -> some View {
+        Image(systemName: systemName)
+            .font(.system(size: 12, weight: .semibold))
+            .foregroundStyle(isActive ? Color.blue : .secondary)
+            .frame(width: 32, height: 32)
+            .glassEffect()
+            .glassEffectID(mode.rawValue, in: layoutNamespace)
+            .contentShape(Circle())
+            .onTapGesture {
+                withAnimation(.spring(duration: 0.45)) {
+                    if mode == layout {
+                        layoutExpanded.toggle()
+                    } else {
+                        layout = mode
+                        layoutExpanded = false
+                    }
+                }
+            }
     }
 
     /// 当前层级标题:系别页=学院代码;课程页=系别代码(全部课程时=学院代码)
@@ -400,77 +431,4 @@ struct CatalogView: View {
         isLoading = false
     }
 }
-// MARK: - 紧凑课程卡(卡片布局;与 CourseRow 同构:头部 + 分割线 + 标签值信息区)
 
-struct CatalogCourseCard: View {
-    let course: FuzzyCourse
-    @Environment(\.colorScheme) private var scheme
-
-    var body: some View {
-        NavigationLink(value: Route.course(course.New_code)) {
-            VStack(alignment: .leading, spacing: 8) {
-                // 头部:代码/标题/中文名 + Offered 徽章(与 CourseRow 一致)
-                HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(course.New_code)
-                            .font(.subheadline.weight(.heavy))
-                            .lineLimit(1)
-                        if let titleEng = course.courseTitleEng, !titleEng.isEmpty {
-                            Text(titleEng)
-                                .font(.caption)
-                                .lineLimit(2)
-                        }
-                        if let titleChi = course.courseTitleChi, !titleChi.isEmpty {
-                            Text(titleChi)
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                        }
-                    }
-                    Spacer()
-                    if course.Is_Offered == 1 {
-                        OfferedComView()
-                    }
-                }
-
-                Divider().opacity(0.4)
-
-                // 信息区:与 CourseRow 同款标签/值(紧凑 2×2,不再用 "cr" 缩写)
-                Grid(horizontalSpacing: 8, verticalSpacing: 4) {
-                    GridRow {
-                        infoColumn("Credits", course.Credits ?? "N/A")
-                        infoColumn("Dept.", course.Offering_Department ?? "N/A")
-                    }
-                    GridRow {
-                        infoColumn("Faculty", course.Offering_Unit ?? "N/A")
-                        infoColumn("Language", course.Medium_of_Instruction ?? "N/A")
-                    }
-                }
-            }
-            .padding(14)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .glassEffect(in: .rect(cornerRadius: 18))
-            .overlay(
-                RoundedRectangle(cornerRadius: 18)
-                    .strokeBorder(
-                        scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
-                        lineWidth: 1
-                    )
-            )
-        }
-        .buttonStyle(.plain)
-    }
-
-    /// 与 CourseRow.infoColumn 同款:10pt 标签在上,值在下
-    private func infoColumn(_ title: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.system(size: 10))
-                .foregroundStyle(.tertiary)
-            Text(value)
-                .font(.caption)
-                .lineLimit(1)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-}
