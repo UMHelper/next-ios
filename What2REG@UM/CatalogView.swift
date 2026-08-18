@@ -79,30 +79,32 @@ struct CatalogView: View {
         }
     }
 
-    // MARK: 学院列表(卡片网格,点击学院在卡内原地展开系别)
+    // MARK: 学院列表(两列独立瀑布流:点左侧展开只推挤左列,右列保持不动)
 
     private var facultyList: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                LazyVGrid(
-                    columns: [
-                        GridItem(.flexible(), spacing: 14),
-                        GridItem(.flexible(), spacing: 14),
-                    ],
-                    spacing: 14
-                ) {
-                    // GE Course 置顶
-                    facultyGridCard("GE Course")
-                    ForEach(Self.faculties, id: \.self) { unit in
+            HStack(alignment: .top, spacing: 14) {
+                VStack(spacing: 14) {
+                    ForEach(Array(facultyItems.enumerated().filter { $0.offset % 2 == 0 }), id: \.element) { _, unit in
                         facultyGridCard(unit)
                     }
                 }
-                .padding(.horizontal, 20)
+                VStack(spacing: 14) {
+                    ForEach(Array(facultyItems.enumerated().filter { $0.offset % 2 == 1 }), id: \.element) { _, unit in
+                        facultyGridCard(unit)
+                    }
+                }
             }
+            .padding(.horizontal, 20)
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
         .scrollContentBackground(.hidden)
+    }
+
+    /// GE 置顶 + 全部学院(左右两列交替分配,展开时互不影响)
+    private var facultyItems: [String] {
+        ["GE Course"] + Self.faculties
     }
 
     /// 点击学院:无系别直接进课程;有系别展开/收起面板
@@ -178,8 +180,6 @@ struct CatalogView: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        // 未展开时固定高度:同行另一张卡展开时,本卡不会被网格拉伸变形
-        .frame(height: isExpanded ? nil : 120, alignment: .top)
         .glassEffect(in: .rect(cornerRadius: 18))
         .overlay(
             RoundedRectangle(cornerRadius: 18)
