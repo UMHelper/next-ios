@@ -302,8 +302,7 @@ struct CatalogView: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 7)
                 .foregroundStyle(selected ? .white : .primary)
-                // 浅色模式未选中项垫白底;胶囊形状直接烤进玻璃效果,选中状态切换时不闪矩形
-                .background(Capsule().fill(!selected && scheme == .light ? Color.white.opacity(0.65) : Color.clear))
+                // 胶囊形状直接烤进玻璃效果,选中状态切换时不闪矩形
                 .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
                 .overlay(
                     Capsule()

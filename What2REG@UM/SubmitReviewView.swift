@@ -201,8 +201,6 @@ struct SubmitReviewView: View {
                             .foregroundStyle(selected ? .white : .primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 8)
-                            // 浅色模式未选中项垫白底,保证分段胶囊可见
-                            .background(Capsule().fill(!selected && scheme == .light ? Color.white.opacity(0.65) : Color.clear))
                             .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
                     }
                     .buttonStyle(.plain)
