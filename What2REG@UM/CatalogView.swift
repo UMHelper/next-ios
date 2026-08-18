@@ -35,6 +35,8 @@ struct CatalogView: View {
     @State private var isLoading = false
     @State private var selectedUnit: String? = nil
     @State private var selectedDept: String? = nil
+    /// 是否停留在「系别页」(学院 → 系别 → 课程 三级下钻)
+    @State private var showingDepts = false
     @State private var errorMessage: String?
     @State private var layout: CatalogLayout = .grid
 
@@ -42,11 +44,15 @@ struct CatalogView: View {
         Group {
             if selectedUnit == nil {
                 facultyList
+            } else if showingDepts {
+                deptPage
             } else {
                 courseList
             }
         }
-                .task {
+        // 与其他页面一致的小标题模式:返回时导航栏高度不再变化,内容不会位移
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
             if let initialUnit, selectedUnit == nil {
                 open(unit: initialUnit)
             }
@@ -55,7 +61,7 @@ struct CatalogView: View {
             route.destination
         }
         .toolbar {
-            // 学院列表:菜单按钮;课程列表:返回按钮
+            // 学院列表:菜单按钮;系别/课程页:返回按钮(逐级回退)
             ToolbarItem(placement: .topBarLeading) {
                 if selectedUnit == nil {
                     Button {
@@ -65,38 +71,38 @@ struct CatalogView: View {
                     }
                 } else {
                     Button {
-                        selectedUnit = nil
-                        selectedDept = nil
-                        courses = []
+                        goBackOneLevel()
                     } label: {
                         Image(systemName: "chevron.left")
                     }
                 }
             }
-            // 课程列表:标题居中显示在顶部
+            // 系别页显示学院代码;课程列表显示系别/学院代码
             if selectedUnit != nil {
                 ToolbarItem(placement: .principal) {
-                    Text(selectedUnit?.uppercased() ?? "")
+                    Text(currentLevelTitle)
                         .font(.headline)
                 }
             }
-            // 列表/卡片切换:系统工具栏按钮组(自动圆形玻璃,与菜单按钮同尺寸)
-            ToolbarItemGroup(placement: .topBarTrailing) {
-                Button {
-                    withAnimation(.spring(duration: 0.45)) {
-                        layout = .grid
+            // 列表/卡片切换:仅课程列表页显示(系统工具栏按钮组,自动圆形玻璃)
+            if selectedUnit != nil && !showingDepts {
+                ToolbarItemGroup(placement: .topBarTrailing) {
+                    Button {
+                        withAnimation(.spring(duration: 0.45)) {
+                            layout = .grid
+                        }
+                    } label: {
+                        Image(systemName: layout == .grid ? "square.grid.2x2.fill" : "square.grid.2x2")
+                            .foregroundStyle(layout == .grid ? Color.blue : Color.secondary)
                     }
-                } label: {
-                    Image(systemName: layout == .grid ? "square.grid.2x2.fill" : "square.grid.2x2")
-                        .foregroundStyle(layout == .grid ? Color.blue : Color.secondary)
-                }
-                Button {
-                    withAnimation(.spring(duration: 0.45)) {
-                        layout = .list
+                    Button {
+                        withAnimation(.spring(duration: 0.45)) {
+                            layout = .list
+                        }
+                    } label: {
+                        Image(systemName: "list.bullet")
+                            .foregroundStyle(layout == .list ? Color.blue : Color.secondary)
                     }
-                } label: {
-                    Image(systemName: "list.bullet")
-                        .foregroundStyle(layout == .list ? Color.blue : Color.secondary)
                 }
             }
         }
@@ -226,34 +232,9 @@ struct CatalogView: View {
         }
     }
 
-    // MARK: 课程列表(卡片/列表两种布局,切换按钮与系别筛选同行,参照搜索栏)
+    // MARK: 课程列表(卡片/列表两种布局;系别经上级系别页选择,无固定筛选栏)
     private var courseList: some View {
         VStack(alignment: .leading, spacing: 10) {
-            // 系别筛选胶囊
-            let options = deptOptions
-            if !options.isEmpty {
-                // 不用 GlassEffectContainer:漂浮式容器在页面返回重挂载时会重新落定,
-                // 导致筛选栏往下跳一段;直接对横向滚动区应用固定玻璃矩形
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        chip("All", selected: selectedDept == nil) {
-                            selectedDept = nil
-                            Task { await load() }
-                        }
-                        ForEach(options, id: \.self) { dept in
-                            chip(dept, selected: selectedDept == dept) {
-                                selectedDept = dept
-                                Task { await load() }
-                            }
-                        }
-                    }
-                    .padding(.horizontal, 12)
-                }
-                .padding(.vertical, 6)
-                .glassEffect(.regular.interactive(), in: .rect(cornerRadius: 22))
-                .padding(.horizontal, 12)
-            }
-
             if isLoading {
                 ProgressView("Loading...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -300,27 +281,6 @@ struct CatalogView: View {
         }
     }
 
-    private func chip(_ title: String, selected: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.caption.weight(.semibold))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 7)
-                .foregroundStyle(selected ? .white : .primary)
-                .background(
-                    selected
-                        ? Color.blue
-                        : Color.white.opacity(scheme == .dark ? 0.08 : 0.28),
-                    in: Capsule()
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(selected ? Color.clear : Color.secondary.opacity(0.25), lineWidth: 1)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-
     private var deptOptions: [String] {
         guard let unit = selectedUnit else { return [] }
         if unit.lowercased() == "gecourse" {
@@ -329,10 +289,92 @@ struct CatalogView: View {
         return Self.facultyDept[unit] ?? []
     }
 
+    /// 进入学院:多系先到系别页,单系/无系直接进课程列表
     private func open(unit: String) {
         selectedUnit = unit
         selectedDept = nil
-        Task { await load() }
+        courses = []
+        if deptOptions.count > 1 {
+            showingDepts = true
+        } else {
+            showingDepts = false
+            selectedDept = deptOptions.first
+            Task { await load() }
+        }
+    }
+
+    /// 工具栏返回:课程列表 → 系别页 → 学院列表,逐级回退
+    private func goBackOneLevel() {
+        guard selectedUnit != nil else { return }
+        if showingDepts {
+            selectedUnit = nil
+            selectedDept = nil
+            showingDepts = false
+            courses = []
+        } else if deptOptions.count > 1 {
+            selectedDept = nil
+            showingDepts = true
+            courses = []
+        } else {
+            selectedUnit = nil
+            selectedDept = nil
+            showingDepts = false
+            courses = []
+        }
+    }
+
+    /// 当前层级标题:系别页=学院代码;课程页=系别代码(全部课程时=学院代码)
+    private var currentLevelTitle: String {
+        guard let unit = selectedUnit else { return "" }
+        if showingDepts {
+            return unit.uppercased()
+        }
+        return (selectedDept ?? unit).uppercased()
+    }
+
+    // MARK: 系别页(学院 → 系别下钻,取代原固定筛选栏)
+    private var deptPage: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 14) {
+                SectionHeader(title: "Departments")
+                    .padding(.horizontal, 16)
+                GlassCard(padding: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        deptRow("All Courses", code: nil)
+                        ForEach(deptOptions, id: \.self) { dept in
+                            Divider().opacity(0.4).padding(.horizontal, 14)
+                            deptRow(dept, code: dept)
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 8)
+            .padding(.bottom, 96)
+        }
+        .scrollContentBackground(.hidden)
+    }
+
+    /// 系别行:文字 + 右对齐箭头(与 About 链接行同构)
+    private func deptRow(_ title: String, code: String?) -> some View {
+        Button {
+            selectedDept = code
+            showingDepts = false
+            Task { await load() }
+        } label: {
+            HStack(spacing: 10) {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 
     private func load() async {
