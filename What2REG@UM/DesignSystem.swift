@@ -26,7 +26,8 @@ struct LiquidBackground: View {
                     LinearGradient(
                         colors: light
                             ? [
-                                Color(red: 0.70, green: 0.83, blue: 0.97),
+                                // 浅色模式顶部提亮:原 0.70 偏深,胶囊行区域容易显得发黑
+                                Color(red: 0.78, green: 0.87, blue: 0.98),
                                 Color(red: 0.85, green: 0.92, blue: 1.00),
                             ]
                             : [
@@ -41,7 +42,8 @@ struct LiquidBackground: View {
                     Circle()
                         .fill(
                             AngularGradient(
-                                colors: [.clear, light ? Color.blue.opacity(0.35) : Color.blue.opacity(0.5), .clear, .clear],
+                                // 浅色模式光扇大幅减淡:蓝色楔形扫过顶部会让那一行发黑
+                                colors: [.clear, light ? Color.blue.opacity(0.14) : Color.blue.opacity(0.5), .clear, .clear],
                                 center: .center
                             )
                         )
@@ -59,7 +61,7 @@ struct LiquidBackground: View {
                         center: CGPoint(x: w * 0.30, y: h * 0.30),
                         size: w * 0.85,
                         blur: 90,
-                        opacity: light ? 0.34 : 0.45
+                        opacity: light ? 0.24 : 0.45
                     )
                     orbitingBlob(
                         color: .cyan,
@@ -69,7 +71,7 @@ struct LiquidBackground: View {
                         center: CGPoint(x: w * 0.78, y: h * 0.62),
                         size: w * 0.70,
                         blur: 85,
-                        opacity: light ? 0.30 : 0.40
+                        opacity: light ? 0.20 : 0.40
                     )
                     orbitingBlob(
                         color: .indigo,
@@ -79,7 +81,7 @@ struct LiquidBackground: View {
                         center: CGPoint(x: w * 0.55, y: h * 0.85),
                         size: w * 0.78,
                         blur: 90,
-                        opacity: light ? 0.26 : 0.36
+                        opacity: light ? 0.17 : 0.36
                     )
                 }
                 // 整层一次性合成(视觉不变),减少玻璃卡背后的逐层混合开销
