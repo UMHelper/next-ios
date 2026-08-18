@@ -139,15 +139,9 @@ struct CatalogView: View {
         }
     }
 
-    /// 学院行标签:圆形玻璃图标 + 学院名 + 系别摘要(右侧为系统披露箭头)
+    /// 学院行标签:学院名 + 系别摘要(右侧为系统披露箭头,无占位图标)
     private func facultyLabel(_ unit: String) -> some View {
         HStack(spacing: 14) {
-            Image(systemName: unit == "GE Course" ? "globe.asia.australia.fill" : "building.columns.fill")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.blue)
-                .frame(width: 42, height: 42)
-                .glassEffect(.regular.interactive(), in: .circle)
-
             VStack(alignment: .leading, spacing: 2) {
                 Text(unit)
                     .font(.headline)
