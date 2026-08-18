@@ -82,7 +82,8 @@ struct CatalogView: View {
     // MARK: 学院列表(卡片网格 + 点击展开系别面板)
 
     private var facultyList: some View {
-        ScrollView {
+        ScrollViewReader { proxy in
+            ScrollView {
             VStack(alignment: .leading, spacing: 14) {
                 LazyVGrid(
                     columns: [
@@ -112,14 +113,22 @@ struct CatalogView: View {
                 // 二级菜单:展开的系别面板(整宽玻璃卡,位于网格下方)
                 if let expanded = expandedUnit {
                     deptPanel(for: expanded)
+                        .id("dept-panel")
                         .padding(.horizontal, 20)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
         .scrollContentBackground(.hidden)
+        .onChange(of: expandedUnit) { _, newValue in
+            guard newValue != nil else { return }
+            // 展开后自动滚动到系别面板:网格很高,面板在屏幕外会让人以为点击没反应
+            withAnimation(.easeOut(duration: 0.3)) {
+                proxy.scrollTo("dept-panel", anchor: .top)
+            }
+        }
+        }
     }
 
     /// 点击学院:无系别直接进课程;有系别展开/收起面板
@@ -214,10 +223,15 @@ struct CatalogView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             ScrollView {
-                CourseListGroup(courses: courses)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .padding(.bottom, 96)
+                // 课程列表(宽卡,与搜索结果一致)
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(courses) { course in
+                        CourseCard(course: course)
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 96)
             }
             .scrollContentBackground(.hidden)
         }
