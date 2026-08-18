@@ -300,6 +300,8 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
+                                // 浅色模式垫白色底:玻璃取样浅背景会隐形,白底保证胶囊始终可见
+                                .background(Capsule().fill(scheme == .dark ? Color.clear : Color.white.opacity(0.65)))
                                 .glassEffect(.regular.interactive(), in: .capsule)
                                 .overlay(
                                     Capsule()
@@ -327,7 +329,8 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                // 与列表玻璃卡同源的玻璃胶囊,消除材质胶囊与玻璃列表的割裂感
+                                // 浅色模式垫白色底,保证胶囊可见;深色保持玻璃原样
+                                .background(Capsule().fill(scheme == .dark ? Color.clear : Color.white.opacity(0.65)))
                                 .glassEffect(.regular.interactive(), in: .capsule)
                                 .overlay(
                                     Capsule()
@@ -379,6 +382,8 @@ struct SearchResultView: View {
                                     .foregroundStyle(selected ? .white : .primary)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
+                                    // 浅色模式未选中项垫白底,选中项蓝色玻璃染不受影响
+                                    .background(Capsule().fill(!selected && scheme == .light ? Color.white.opacity(0.55) : Color.clear))
                                     .glassEffect(selected ? .regular.tint(.blue) : .regular.interactive(), in: .capsule)
                             }
                             .buttonStyle(.plain)
