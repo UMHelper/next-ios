@@ -140,7 +140,7 @@ struct CatalogView: View {
         .buttonStyle(.plain)
     }
 
-    /// 学院卡(两列网格卡片):点击头部在卡内原地展开系别
+    /// 学院卡:固定高度;点击后系别以浮层覆盖在下方卡片上,不影响任何布局
     private func facultyGridCard(_ unit: String) -> some View {
         let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
         let isExpanded = expandedUnit == unit
@@ -166,18 +166,6 @@ struct CatalogView: View {
             .onTapGesture {
                 tapFaculty(unit)
             }
-
-            // 原地展开的系别(卡片内部,独立可点的系别按钮)
-            if isExpanded {
-                VStack(alignment: .leading, spacing: 0) {
-                    Divider().opacity(0.4).padding(.horizontal, 14)
-                    deptRow("All Courses", unit: unit, dept: nil)
-                    ForEach(depts, id: \.self) { dept in
-                        Divider().opacity(0.4).padding(.horizontal, 14)
-                        deptRow(dept, unit: unit, dept: dept)
-                    }
-                }
-            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .glassEffect(in: .rect(cornerRadius: 18))
@@ -188,8 +176,34 @@ struct CatalogView: View {
                     lineWidth: 1
                 )
         )
+        // 系别浮层:覆盖在卡片正下方,不占布局高度,不推动任何卡片
+        .overlay(alignment: .topLeading) {
+            if isExpanded {
+                VStack(alignment: .leading, spacing: 0) {
+                    deptRow("All Courses", unit: unit, dept: nil)
+                    ForEach(depts, id: \.self) { dept in
+                        Divider().opacity(0.4).padding(.horizontal, 14)
+                        deptRow(dept, unit: unit, dept: dept)
+                    }
+                }
+                .padding(.vertical, 4)
+                .frame(maxWidth: .infinity)
+                .glassEffect(in: .rect(cornerRadius: 18))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 18)
+                        .strokeBorder(
+                            scheme == .dark ? Color.white.opacity(0.22) : Color.white.opacity(0.65),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: .black.opacity(0.25), radius: 16, y: 6)
+                .offset(y: 128)
+                .zIndex(2)
+                .transition(.opacity)
+            }
+        }
         // 玻璃卡内动态插入的展开内容在 iOS 26 不渲染:展开状态变化时强制重建。
-        // id 必须包含学院名:网格内同 id 的格子会互相覆盖(之前只剩 GE 一张卡)
+        // id 必须包含学院名:两列内同 id 视图会互相覆盖
         .id("\(unit)-\(isExpanded)")
     }
 
