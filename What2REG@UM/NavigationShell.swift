@@ -191,7 +191,8 @@ struct SidebarMenu: View {
                 }
                 .frame(width: 280)
                 .frame(maxHeight: .infinity, alignment: .topLeading)
-                .background(.regularMaterial, in: panelShape)
+                // 纯液态玻璃:去掉 regularMaterial 打底,玻璃效果直接透出后方画面
+                // (与 GlassCard 同语言:玻璃 + 发丝描边 + 柔和投影)
                 .glassEffect(in: panelShape)
                 .overlay {
                     panelShape.strokeBorder(
