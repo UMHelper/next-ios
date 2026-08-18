@@ -69,6 +69,8 @@ struct SidebarMenu: View {
             .foregroundStyle(isActive ? .primary : .secondary)
             .glassEffect()
             .glassEffectID(mode.rawValue, in: themeNamespace)
+            // 与搜索栏模式切换同款修复:命中区域扩展到整个玻璃圆
+            .contentShape(Circle())
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {
                     if mode == theme {
@@ -324,6 +326,8 @@ struct BottomSearchBar: View {
             .foregroundStyle(isActive ? .primary : .secondary)
             .glassEffect()
             .glassEffectID(mode, in: namespace)
+            // 命中区域扩展到整个 52×52 玻璃圆:onTapGesture 默认只命中字形本身,手机上手指点不中
+            .contentShape(Circle())
             .onTapGesture {
                 withAnimation(.spring(duration: 0.45)) {
                     if mode == self.mode {
