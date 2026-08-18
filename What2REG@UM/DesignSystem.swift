@@ -266,14 +266,15 @@ struct CourseCard: View {
                 // 头部(宽/紧凑统一):课号 + Offered 徽章同行,英文/中文名独占整行,
                 // 徽章不再压缩标题宽度
                 VStack(alignment: .leading, spacing: 3) {
+                    // 代码行:代码在左,Offered 徽章右对齐(标题独占下方整行)
                     HStack(spacing: 6) {
                         Text(course.New_code)
                             .font(.subheadline.weight(.heavy))
                             .lineLimit(1)
+                        Spacer(minLength: 0)
                         if course.Is_Offered == 1 {
                             OfferedComView()
                         }
-                        Spacer(minLength: 0)
                     }
                     Text(course.courseTitleEng ?? "")
                         .font(.footnote)
