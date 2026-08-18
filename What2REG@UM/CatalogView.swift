@@ -137,6 +137,8 @@ struct CatalogView: View {
                 .tint(.secondary)
             }
         }
+        // 玻璃卡内动态插入的展开内容在 iOS 26 不渲染:展开状态变化时强制重建卡片
+        .id(expandedUnit == unit)
     }
 
     /// 学院行标签:学院名 + 系别摘要(右侧为系统披露箭头,无占位图标)

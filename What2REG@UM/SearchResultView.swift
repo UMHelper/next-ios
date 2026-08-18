@@ -184,10 +184,10 @@ struct SearchResultView: View {
     private var resultList: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // 筛选栏与列表同在一个滚动流中,背景连续统一;栏内全宽滚动不受 padding 裁剪
-                if currentMode == "course" {
-                    filterBar
-                }
+                // 筛选功能暂时停用(用户要求注释掉)
+                // if currentMode == "course" {
+                //     filterBar
+                // }
 
                 // 结果列表懒加载:大量玻璃卡片时避免全部同时渲染
                 LazyVStack(alignment: .leading, spacing: 14) {
