@@ -198,10 +198,11 @@ struct CatalogView: View {
                 )
                 .shadow(color: .black.opacity(0.25), radius: 16, y: 6)
                 .offset(y: 128)
-                .zIndex(2)
                 .transition(.opacity)
             }
         }
+        // 展开的卡整体提升层级,浮层才能盖过下方卡片(VStack 后绘制的兄弟会遮住浮层)
+        .zIndex(isExpanded ? 2 : 0)
         // 玻璃卡内动态插入的展开内容在 iOS 26 不渲染:展开状态变化时强制重建。
         // id 必须包含学院名:两列内同 id 视图会互相覆盖
         .id("\(unit)-\(isExpanded)")
