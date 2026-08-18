@@ -338,6 +338,71 @@ struct CourseCard: View {
     }
 }
 
+// MARK: - 课程行式列表(所有课程列表统一:行 + 分割线,非卡片)
+
+struct CourseListRow: View {
+    let course: FuzzyCourse
+
+    var body: some View {
+        NavigationLink(value: Route.course(course.New_code)) {
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text(course.New_code)
+                        .font(.subheadline.weight(.heavy))
+                        .lineLimit(1)
+                    if course.Is_Offered == 1 {
+                        OfferedComView()
+                    }
+                    Spacer(minLength: 0)
+                    Image(systemName: "chevron.right")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                Text(course.courseTitleEng ?? "")
+                    .font(.footnote)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Text(course.courseTitleChi ?? "")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                Text([
+                    course.Credits.map { "\($0) Credits" } ?? "N/A",
+                    course.Offering_Department ?? "N/A",
+                    course.Offering_Unit ?? "N/A",
+                    course.Medium_of_Instruction ?? "N/A",
+                ].filter { $0 != "N/A" }.joined(separator: " · "))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+/// 课程分组列表:单张玻璃卡,行与行之间发丝分割线
+struct CourseListGroup: View {
+    let courses: [FuzzyCourse]
+
+    var body: some View {
+        GlassCard(cornerRadius: 22, padding: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(courses.enumerated()), id: \.element.id) { index, course in
+                    if index > 0 {
+                        Divider().opacity(0.4).padding(.horizontal, 14)
+                    }
+                    CourseListRow(course: course)
+                }
+            }
+        }
+    }
+}
+
 // MARK: - 区块标题（小号大写 + 字距）
 
 struct SectionHeader: View {

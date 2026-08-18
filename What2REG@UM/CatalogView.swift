@@ -2,16 +2,11 @@
 //  CatalogView.swift
 //  What2REG@UM
 //
-//  学院目录：按学院/系/GE 分类浏览课程（玻璃列表 + 玻璃筛选胶囊）。
+//  学院目录:学院卡片网格;点击学院展开系别面板(二级菜单);
+//  课程一律行式列表(非卡片),玻璃风格与全 App 统一。
 //
 
 import SwiftUI
-
-/// 目录布局模式(卡片 / 列表)
-enum CatalogLayout: String {
-    case grid
-    case list
-}
 
 struct CatalogView: View {
     var initialUnit: String? = nil
@@ -19,7 +14,7 @@ struct CatalogView: View {
     @Environment(\.openSidebar) private var openSidebar
     @Environment(\.colorScheme) private var scheme
 
-    /// 学院列表与系别（与 Web 端 lib/consant.ts faculty / faculty_dept 一致）
+    /// 学院列表与系别(与 Web 端 lib/consant.ts faculty / faculty_dept 一致)
     static let faculties = ["FBA", "FAH", "ICI", "FST", "IAPME", "ICMS", "FSS", "FED", "FLL", "FHS", "IME", "HC", "RC"]
     static let facultyDept: [String: [String]] = [
         "FAH": ["CJS", "DCH", "DENG", "DHIST", "DPHIL", "DPT", "ELC"],
@@ -35,36 +30,29 @@ struct CatalogView: View {
     @State private var isLoading = false
     @State private var selectedUnit: String? = nil
     @State private var selectedDept: String? = nil
-    /// 是否停留在「系别页」(学院 → 系别 → 课程 三级下钻)
-    @State private var showingDepts = false
-    /// 布局切换展开态(与搜索栏模式切换同款交互)
-    @State private var layoutExpanded = false
-    @Namespace private var layoutNamespace
     @State private var errorMessage: String?
-    @State private var layout: CatalogLayout = .grid
+    /// 当前展开系别面板的学院(点击学院卡展开,再点收起)
+    @State private var expandedUnit: String? = nil
 
     var body: some View {
         Group {
             if selectedUnit == nil {
                 facultyList
-            } else if showingDepts {
-                deptPage
             } else {
                 courseList
             }
         }
-        // 与其他页面一致的小标题模式:返回时导航栏高度不再变化,内容不会位移
+        // 与其他页面一致的小标题模式,返回时导航栏高度不变,内容不会位移
         .navigationBarTitleDisplayMode(.inline)
         .task {
             if let initialUnit, selectedUnit == nil {
-                open(unit: initialUnit)
+                open(unit: initialUnit, dept: nil)
             }
         }
         .navigationDestination(for: Route.self) { route in
             route.destination
         }
         .toolbar {
-            // 学院列表:菜单按钮;系别/课程页:返回按钮(逐级回退)
             ToolbarItem(placement: .topBarLeading) {
                 if selectedUnit == nil {
                     Button {
@@ -74,95 +62,114 @@ struct CatalogView: View {
                     }
                 } else {
                     Button {
-                        goBackOneLevel()
+                        selectedUnit = nil
+                        selectedDept = nil
+                        courses = []
                     } label: {
                         Image(systemName: "chevron.left")
                     }
                 }
             }
-            // 系别页显示学院代码;课程列表显示系别/学院代码
             if selectedUnit != nil {
                 ToolbarItem(placement: .principal) {
-                    Text(currentLevelTitle)
+                    Text((selectedDept ?? selectedUnit)?.uppercased() ?? "")
                         .font(.headline)
-                }
-            }
-            // 列表/卡片切换:仅课程列表页显示;与底部搜索栏模式切换同款玻璃开关
-            if selectedUnit != nil && !showingDepts {
-                ToolbarItem(placement: .topBarTrailing) {
-                    layoutSwitch
                 }
             }
         }
     }
 
-    // MARK: 学院列表(卡片/列表两种布局,标题行右侧为液态玻璃切换按钮)
+    // MARK: 学院列表(卡片网格 + 点击展开系别面板)
 
     private var facultyList: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 14) {
-                if layout == .grid {
-                    // 卡片布局:两列紧凑学院卡(GE 一并入网格)
-                    LazyVGrid(
-                        columns: [
-                            GridItem(.flexible(), spacing: 14),
-                            GridItem(.flexible(), spacing: 14),
-                        ],
-                        spacing: 14
-                    ) {
-                        // GE Course 置顶
+                LazyVGrid(
+                    columns: [
+                        GridItem(.flexible(), spacing: 14),
+                        GridItem(.flexible(), spacing: 14),
+                    ],
+                    spacing: 14
+                ) {
+                    // GE Course 置顶
+                    Button {
+                        tapFaculty("GE Course")
+                    } label: {
+                        facultyGridCard("GE Course")
+                    }
+                    .buttonStyle(.plain)
+                    ForEach(Self.faculties, id: \.self) { unit in
                         Button {
-                            open(unit: "gecourse")
+                            tapFaculty(unit)
                         } label: {
-                            facultyGridCard("GE Course")
+                            facultyGridCard(unit)
                         }
                         .buttonStyle(.plain)
-                        ForEach(Self.faculties, id: \.self) { unit in
-                            Button {
-                                open(unit: unit)
-                            } label: {
-                                facultyGridCard(unit)
-                            }
-                            .buttonStyle(.plain)
-                        }
                     }
-                    .padding(.horizontal, 20)
-                } else {
-                    // 列表布局:GE Course 置顶,学院卡随后(左右 20pt padding)
-                    VStack(alignment: .leading, spacing: 14) {
-                        SectionHeader(title: "GE Course")
-                            .padding(.horizontal, 16)
-                        Button {
-                            open(unit: "gecourse")
-                        } label: {
-                            facultyCard("GE Course")
-                        }
-                        .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
 
-                        SectionHeader(title: "Faculties")
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
-
-                        ForEach(Self.faculties, id: \.self) { unit in
-                            Button {
-                                open(unit: unit)
-                            } label: {
-                                facultyCard(unit)
-                            }
-                            .buttonStyle(.plain)
-                        }
-                    }
-                    .padding(.horizontal, 20)
+                // 二级菜单:展开的系别面板(整宽玻璃卡,位于网格下方)
+                if let expanded = expandedUnit {
+                    deptPanel(for: expanded)
+                        .padding(.horizontal, 20)
+                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
             .padding(.top, 8)
             .padding(.bottom, 96)
         }
-        // 关掉系统滚动底色,露出统一的 LiquidBackground
         .scrollContentBackground(.hidden)
     }
 
-    /// 紧凑学院卡(卡片布局,参考课程卡实现)
+    /// 点击学院:无系别直接进课程;有系别展开/收起面板
+    private func tapFaculty(_ unit: String) {
+        let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
+        withAnimation(.spring(duration: 0.35)) {
+            if depts.isEmpty {
+                expandedUnit = nil
+                open(unit: unit, dept: nil)
+            } else {
+                expandedUnit = (expandedUnit == unit) ? nil : unit
+            }
+        }
+    }
+
+    /// 系别面板(二级菜单):All Courses + 各系
+    private func deptPanel(for unit: String) -> some View {
+        let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
+        return GlassCard(cornerRadius: 22, padding: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                deptRow("All Courses", unit: unit, dept: nil)
+                ForEach(depts, id: \.self) { dept in
+                    Divider().opacity(0.4).padding(.horizontal, 14)
+                    deptRow(dept, unit: unit, dept: dept)
+                }
+            }
+        }
+    }
+
+    private func deptRow(_ title: String, unit: String, dept: String?) -> some View {
+        Button {
+            expandedUnit = nil
+            open(unit: unit, dept: dept)
+        } label: {
+            HStack(spacing: 10) {
+                Text(title)
+                    .font(.footnote.weight(.semibold))
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption2.weight(.semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    /// 学院卡(两列网格卡片)
     private func facultyGridCard(_ unit: String) -> some View {
         let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
         return VStack(alignment: .leading, spacing: 8) {
@@ -191,221 +198,36 @@ struct CatalogView: View {
         )
     }
 
-    /// 学院行卡(列表布局)
-    private func facultyCard(_ unit: String) -> some View {
-        GlassCard(padding: 14) {
-            HStack(spacing: 14) {
-                Image(systemName: unit == "GE Course" ? "globe.asia.australia.fill" : "building.columns.fill")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(.blue)
-                    .frame(width: 42, height: 42)
-                    .glassEffect(.regular.interactive(), in: .circle)
+    // MARK: 课程列表(行式列表,非卡片)
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(unit)
-                        .font(.headline)
-                    let depts = unit == "GE Course" ? Self.geCategories : Self.facultyDept[unit] ?? []
-                    if !depts.isEmpty {
-                        Text(depts.joined(separator: " · "))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-        }
-    }
-
-    // MARK: 课程列表(卡片/列表两种布局;系别经上级系别页选择,无固定筛选栏)
+    @ViewBuilder
     private var courseList: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if isLoading {
-                ProgressView("Loading...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else if let errorMessage {
-                ContentUnavailableView {
-                    Label("Loading Failed", systemImage: "wifi.exclamationmark")
-                } description: {
-                    Text(errorMessage)
-                }
+        if isLoading {
+            ProgressView("Loading...")
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    if layout == .grid {
-                        // 卡片布局:两列紧凑课程卡
-                        LazyVGrid(
-                            columns: [
-                                GridItem(.flexible(), spacing: 14),
-                                GridItem(.flexible(), spacing: 14),
-                            ],
-                            spacing: 14
-                        ) {
-                            ForEach(courses) { course in
-                                CourseCard(course: course, compact: true)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-                        .padding(.bottom, 20)
-                    } else {
-                        // 列表布局:整行课程卡
-                        LazyVStack(alignment: .leading, spacing: 14) {
-                            ForEach(courses) { course in
-                                CourseCard(course: course)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 4)
-                        .padding(.bottom, 20)
-                    }
-                }
-                // 关掉系统滚动底色,露出统一的 LiquidBackground
-                .scrollContentBackground(.hidden)
+        } else if let errorMessage {
+            ContentUnavailableView {
+                Label("Loading Failed", systemImage: "wifi.exclamationmark")
+            } description: {
+                Text(errorMessage)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            ScrollView {
+                CourseListGroup(courses: courses)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 8)
+                    .padding(.bottom, 96)
+            }
+            .scrollContentBackground(.hidden)
         }
     }
 
-    private var deptOptions: [String] {
-        guard let unit = selectedUnit else { return [] }
-        if unit.lowercased() == "gecourse" {
-            return Self.geCategories
-        }
-        return Self.facultyDept[unit] ?? []
-    }
-
-    /// 进入学院:多系先到系别页,单系/无系直接进课程列表
-    private func open(unit: String) {
+    private func open(unit: String, dept: String?) {
         selectedUnit = unit
-        selectedDept = nil
+        selectedDept = dept
         courses = []
-        if deptOptions.count > 1 {
-            showingDepts = true
-        } else {
-            showingDepts = false
-            selectedDept = deptOptions.first
-            Task { await load() }
-        }
-    }
-
-    /// 工具栏返回:课程列表 → 系别页 → 学院列表,逐级回退
-    private func goBackOneLevel() {
-        guard selectedUnit != nil else { return }
-        if showingDepts {
-            selectedUnit = nil
-            selectedDept = nil
-            showingDepts = false
-            courses = []
-        } else if deptOptions.count > 1 {
-            selectedDept = nil
-            showingDepts = true
-            courses = []
-        } else {
-            selectedUnit = nil
-            selectedDept = nil
-            showingDepts = false
-            courses = []
-        }
-    }
-
-    /// 布局切换:与搜索栏模式切换完全同款的玻璃开关(点当前态展开,点另一态切换并收起)
-    private var layoutSwitch: some View {
-        GlassEffectContainer {
-            HStack(spacing: 4) {
-                if layout == .grid {
-                    layoutIcon(.grid, systemName: "rectangle.grid.2x2.fill", isActive: true)
-                    if layoutExpanded {
-                        layoutIcon(.list, systemName: "rectangle.grid.1x2", isActive: false)
-                    }
-                } else {
-                    layoutIcon(.list, systemName: "rectangle.grid.1x2.fill", isActive: true)
-                    if layoutExpanded {
-                        layoutIcon(.grid, systemName: "rectangle.grid.2x2", isActive: false)
-                    }
-                }
-            }
-            .padding(3)
-        }
-        // 动态插入的玻璃视图需要强制重建容器才渲染
-        .id(layoutExpanded)
-    }
-
-    /// 布局图标(小号玻璃按钮,与搜索栏模式图标同构)
-    private func layoutIcon(_ mode: CatalogLayout, systemName: String, isActive: Bool) -> some View {
-        Image(systemName: systemName)
-            .font(.system(size: 12, weight: .semibold))
-            .foregroundStyle(isActive ? Color.blue : .secondary)
-            .frame(width: 32, height: 32)
-            .glassEffect()
-            .glassEffectID(mode.rawValue, in: layoutNamespace)
-            .contentShape(Circle())
-            .onTapGesture {
-                withAnimation(.spring(duration: 0.45)) {
-                    if mode == layout {
-                        layoutExpanded.toggle()
-                    } else {
-                        layout = mode
-                        layoutExpanded = false
-                    }
-                }
-            }
-    }
-
-    /// 当前层级标题:系别页=学院代码;课程页=系别代码(全部课程时=学院代码)
-    private var currentLevelTitle: String {
-        guard let unit = selectedUnit else { return "" }
-        if showingDepts {
-            return unit.uppercased()
-        }
-        return (selectedDept ?? unit).uppercased()
-    }
-
-    // MARK: 系别页(学院 → 系别下钻,取代原固定筛选栏)
-    private var deptPage: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 14) {
-                SectionHeader(title: "Departments")
-                    .padding(.horizontal, 16)
-                GlassCard(padding: 0) {
-                    VStack(alignment: .leading, spacing: 0) {
-                        deptRow("All Courses", code: nil)
-                        ForEach(deptOptions, id: \.self) { dept in
-                            Divider().opacity(0.4).padding(.horizontal, 14)
-                            deptRow(dept, code: dept)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 8)
-            .padding(.bottom, 96)
-        }
-        .scrollContentBackground(.hidden)
-    }
-
-    /// 系别行:文字 + 右对齐箭头(与 About 链接行同构)
-    private func deptRow(_ title: String, code: String?) -> some View {
-        Button {
-            selectedDept = code
-            showingDepts = false
-            Task { await load() }
-        } label: {
-            HStack(spacing: 10) {
-                Text(title)
-                    .font(.footnote.weight(.semibold))
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
+        Task { await load() }
     }
 
     private func load() async {
@@ -413,7 +235,7 @@ struct CatalogView: View {
         isLoading = true
         errorMessage = nil
         do {
-            // GE 分类走 unit=GECourse&dept=XXX；gecourse 返回全部 GE
+            // GE 分类走 unit=GECourse&dept=XXX;gecourse 返回全部 GE
             if unit.lowercased() == "gecourse" {
                 if let dept = selectedDept {
                     courses = try await APIClient.fetchCatalog(unit: "GECourse", dept: dept)
@@ -431,4 +253,3 @@ struct CatalogView: View {
         isLoading = false
     }
 }
-

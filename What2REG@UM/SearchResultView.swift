@@ -15,9 +15,13 @@ struct ProfRow: View {
     var body: some View {
         GlassCard(padding: 14) {
             DisclosureGroup {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(prof.course_list) { course in
-                        CourseCard(course: course)
+                // 行式课程列表(单卡内 + 分割线),非卡片
+                VStack(alignment: .leading, spacing: 0) {
+                    ForEach(Array(prof.course_list.enumerated()), id: \.element.id) { index, course in
+                        if index > 0 {
+                            Divider().opacity(0.4).padding(.horizontal, 14)
+                        }
+                        CourseListRow(course: course)
                     }
                 }
                 .padding(.top, 10)
@@ -189,21 +193,22 @@ struct SearchResultView: View {
                 //     filterBar
                 // }
 
-                // 结果列表懒加载:大量玻璃卡片时避免全部同时渲染
-                LazyVStack(alignment: .leading, spacing: 14) {
-                    if currentMode == "course" {
-                        ForEach(filteredCourses) { course in
-                            CourseCard(course: course)
-                        }
-                    } else {
+                // 课程结果:行式列表(单张玻璃卡 + 分割线);讲师结果:分组卡
+                if currentMode == "course" {
+                    CourseListGroup(courses: filteredCourses)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 12)
+                        .padding(.bottom, 96)
+                } else {
+                    VStack(alignment: .leading, spacing: 14) {
                         ForEach(profs, id: \.prof_name) { prof in
                             ProfRow(prof: prof)
                         }
                     }
+                    .padding(.horizontal, 20)
+                    .padding(.top, 12)
+                    .padding(.bottom, 96)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 12)
-                .padding(.bottom, 96)
             }
         }
         // 关掉系统滚动底色,露出统一的 LiquidBackground(浅色模式尤其明显)
