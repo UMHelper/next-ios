@@ -264,11 +264,18 @@ struct CourseCard: View {
         NavigationLink(value: Route.course(course.New_code)) {
             VStack(alignment: .leading, spacing: 8) {
                 // 头部:代码 + 英文名(固定一行,截断) + 中文名(固定一行,截断;缺失也占位) + Offered 徽章
-                HStack(alignment: .top) {
+                if compact {
+                    // 紧凑卡:徽章与代码同行,不再侵占标题列宽度;英文/中文名独占整行
                     VStack(alignment: .leading, spacing: 3) {
-                        Text(course.New_code)
-                            .font(.subheadline.weight(.heavy))
-                            .lineLimit(1)
+                        HStack(spacing: 6) {
+                            Text(course.New_code)
+                                .font(.subheadline.weight(.heavy))
+                                .lineLimit(1)
+                            if course.Is_Offered == 1 {
+                                OfferedComView()
+                            }
+                            Spacer(minLength: 0)
+                        }
                         Text(course.courseTitleEng ?? "")
                             .font(.footnote)
                             .lineLimit(1)
@@ -279,11 +286,28 @@ struct CourseCard: View {
                             .lineLimit(1)
                             .truncationMode(.tail)
                     }
+                } else {
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(course.New_code)
+                                .font(.subheadline.weight(.heavy))
+                                .lineLimit(1)
+                            Text(course.courseTitleEng ?? "")
+                                .font(.footnote)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            Text(course.courseTitleChi ?? "")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                        }
 
-                    Spacer()
+                        Spacer()
 
-                    if course.Is_Offered == 1 {
-                        OfferedComView()
+                        if course.Is_Offered == 1 {
+                            OfferedComView()
+                        }
                     }
                 }
 
