@@ -23,6 +23,8 @@ struct RootView: View {
     @State private var path: [Route] = []
     @State private var selection: SidebarDestination = .home
     @State private var isSidebarOpen = false
+    /// 底部搜索栏焦点:切页面时收起键盘
+    @FocusState private var searchBarFocused: Bool
     // 默认黑暗模式(用户可在侧边栏切换为 Light/System)
     @AppStorage("app.theme") private var themeRaw = AppTheme.dark.rawValue
 
@@ -51,12 +53,14 @@ struct RootView: View {
             }
             .onChange(of: selection) {
                 path = []
+                // 切到 Catalog/About 等页面时收起键盘
+                searchBarFocused = false
             }
             .safeAreaInset(edge: .bottom, spacing: 0) {
                 // 底部常驻搜索栏(原始设计:悬浮在内容之上,底部渐隐遮罩)
-                BottomSearchBar { mode, keyword in
+                BottomSearchBar(onSubmit: { mode, keyword in
                     path.append(.search(mode: mode, keyword: keyword))
-                }
+                }, isFocused: $searchBarFocused)
             }
 
             // 侧边栏(最上层)

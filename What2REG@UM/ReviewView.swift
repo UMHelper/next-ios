@@ -362,12 +362,15 @@ struct ReviewView: View {
                         .frame(maxWidth: .infinity)
                 }
             } else {
-                ForEach(Array(topLevel.enumerated()), id: \.element.id) { index, comment in
-                    CommentView(
-                        comment: comment,
-                        replies: comments.filter { $0.replyto == comment.id }
-                    )
-                    .cardEntrance(appeared: cardsAppeared, delay: 0.08 + Double(min(index, 8)) * 0.05)
+                // 评论列表懒加载:分页累积到几十条时避免全部玻璃卡同时渲染
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(Array(topLevel.enumerated()), id: \.element.id) { index, comment in
+                        CommentView(
+                            comment: comment,
+                            replies: comments.filter { $0.replyto == comment.id }
+                        )
+                        .cardEntrance(appeared: cardsAppeared, delay: 0.08 + Double(min(index, 8)) * 0.05)
+                    }
                 }
             }
         }

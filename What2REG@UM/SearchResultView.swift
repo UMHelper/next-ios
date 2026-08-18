@@ -253,7 +253,8 @@ struct SearchResultView: View {
                     filterBar
                 }
 
-                VStack(alignment: .leading, spacing: 14) {
+                // 结果列表懒加载:大量玻璃卡片时避免全部同时渲染
+                LazyVStack(alignment: .leading, spacing: 14) {
                     if currentMode == "course" {
                         ForEach(filteredCourses) { course in
                             CourseRow(course: course)
@@ -297,7 +298,7 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                .background(.regularMaterial, in: Capsule())
+                                .glassEffect(.regular.interactive(), in: .capsule)
                                 .overlay(
                                     Capsule()
                                         .strokeBorder(Color.secondary.opacity(0.3), lineWidth: 1)
@@ -324,7 +325,8 @@ struct SearchResultView: View {
                                 }
                                 .padding(.horizontal, 12)
                                 .padding(.vertical, 7)
-                                .background(.regularMaterial, in: Capsule())
+                                // 与列表玻璃卡同源的玻璃胶囊,消除材质胶囊与玻璃列表的割裂感
+                                .glassEffect(.regular.interactive(), in: .capsule)
                                 .overlay(
                                     Capsule()
                                         .strokeBorder(

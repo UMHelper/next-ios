@@ -33,7 +33,8 @@ struct ProfessorView: View {
                 }
             } else {
                 ScrollView {
-                    VStack(alignment: .leading, spacing: 14) {
+                    // 课程列表懒加载
+                    LazyVStack(alignment: .leading, spacing: 14) {
                         SectionHeader(title: "Courses", subtitle: "\(courses.count) course\(courses.count == 1 ? "" : "s")")
                             .padding(.horizontal, 16)
                         ForEach(courses) { prof in

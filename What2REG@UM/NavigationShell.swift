@@ -211,12 +211,13 @@ struct SidebarMenu: View {
 
 struct BottomSearchBar: View {
     let onSubmit: (String, String) -> Void
+    /// 焦点状态由 RootView 持有:切换侧边栏页面时可主动收起键盘
+    var isFocused: FocusState<Bool>.Binding
 
     @State private var keyword = ""
     @State private var mode = "course"
     @State private var isExpanded = false
     @Namespace private var namespace
-    @FocusState private var isFocused: Bool
     @Environment(\.colorScheme) private var scheme
 
     var body: some View {
@@ -250,7 +251,7 @@ struct BottomSearchBar: View {
 
                             TextField(mode == "course" ? "Search Course" : "Search Prof", text: $keyword)
                                 .padding()
-                                .focused($isFocused)
+                                .focused(isFocused)
                                 .offset(x: -16.0, y: 0.0)
                                 .textInputAutocapitalization(.characters)
                                 .keyboardType(.asciiCapable)
@@ -305,7 +306,7 @@ struct BottomSearchBar: View {
                     // 启动瞬间直接置位 FocusState 会被丢弃,延迟到视图就绪后再聚焦。
                     Task { @MainActor in
                         try? await Task.sleep(for: .milliseconds(400))
-                        isFocused = true
+                        isFocused.wrappedValue = true
                     }
                 }
             }
@@ -335,7 +336,7 @@ struct BottomSearchBar: View {
         let trimmed = keyword.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
         guard trimmed.count >= 2 else { return }
         keyword = ""
-        isFocused = false
+        isFocused.wrappedValue = false
         onSubmit(mode, trimmed)
     }
 }
