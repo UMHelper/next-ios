@@ -186,8 +186,9 @@ struct CatalogView: View {
                     lineWidth: 1
                 )
         )
-        // 玻璃卡内动态插入的展开内容在 iOS 26 不渲染:展开状态变化时强制重建
-        .id(isExpanded)
+        // 玻璃卡内动态插入的展开内容在 iOS 26 不渲染:展开状态变化时强制重建。
+        // id 必须包含学院名:网格内同 id 的格子会互相覆盖(之前只剩 GE 一张卡)
+        .id("\(unit)-\(isExpanded)")
     }
 
     // MARK: 课程列表(行式列表,非卡片)
