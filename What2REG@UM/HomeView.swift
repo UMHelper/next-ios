@@ -14,7 +14,7 @@ struct HomeView: View {
         ZStack {
             VStack(alignment: .leading) {
                 LoopingTypewriterText(
-                    fullTexts: ["What2REG @UM", "What to take @ UM"],
+                    fullTexts: ["What2REG @UM", "澳大选咩课", "澳大選咩課", "Course review platform for UM", "專為澳大學生而設的課程評價平台"],
                     typingSpeed: 0.1,
                     pauseTime: 1.5
                 )
